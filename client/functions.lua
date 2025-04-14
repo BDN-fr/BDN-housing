@@ -1,11 +1,13 @@
-function WaitInput(message, key, cb)
+function WaitInput(message, keys, cb)
     lib.showTextUI(message)
     while true do
         Wait(0)
-        if IsControlJustReleased(0, key) then
-            cb()
-            lib.hideTextUI()
-            break
+        for i, key in ipairs(keys) do
+            if IsControlJustReleased(0, key) then
+                cb(key)
+                lib.hideTextUI()
+                return
+            end
         end
     end
 end
@@ -13,7 +15,7 @@ end
 function DrawConfigMarker(coords)
     local m = Config.marker
     DrawMarker(
-        m.type, 
+        m.type,
         coords.x, coords.y, coords.z+m.zOffset,
         m.dir.x, m.dir.y, m.dir.z,
         m.rot.x, m.rot.y, m.rot.z,
@@ -35,8 +37,7 @@ end
 function CreateProperty()
     local isCreatingProperty = true
     local enterCoords
-    local price = 0
-    WaitInput('[E] : '..L('PlaceEnter'), 51, function ()
+    WaitInput('[E] : '..L('PlaceEnter'), {51}, function (key)
         enterCoords = GetEntityCoords(PlayerPedId())
         CreateThread(function ()
             while isCreatingProperty do
