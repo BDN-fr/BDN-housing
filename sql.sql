@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS `properties` (
+	`id` INT(20) AUTO_INCREMENT,
+	`shell` TEXT(100) NOT NULL DEFAULT '',
+	`enter_coords` TEXT(100) NOT NULL DEFAULT '',
+	PRIMARY KEY (`id`)
+);

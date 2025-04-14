@@ -1,5 +1,10 @@
-Config = {}
+Config = Config or {}
 
 ESX = exports['es_extended']:getSharedObject()
+Config.ox_inventory = 'ox_inventory'
 
-Config.Job = {}
+Config.lang = 'fr'
+
+Config.Job = {
+    name = 'rea'
+}

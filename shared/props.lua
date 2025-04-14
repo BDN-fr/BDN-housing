@@ -1,1 +1,3 @@
-Props = {}
+Config = Config or {}
+
+Config.Props = {}

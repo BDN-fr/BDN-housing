@@ -1,5 +1,6 @@
 game 'gta5'
 fx_version 'cerulean'
+lua54 'yes'
 
 author 'By BDN_fr for Olympe WL - bdn-fr.xyz'
 description 'A FiveM housing script, working with shells'
