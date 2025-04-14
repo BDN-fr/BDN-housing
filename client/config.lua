@@ -2,9 +2,10 @@ Config = Config or {}
 
 Config.marker = { -- https://docs.fivem.net/natives/?_0x28477EC23D892089
     type = 20,
+    zOffset = 0,
     dir = vec3(0.0,0.0,0.0),
     rot = vec3(0.0,0.0,0.0),
-    scale = vec3(0.0,0.0,0.0),
+    scale = vec3(0.5,0.5,0.5),
     red = 255,
     green = 255,
     blue = 255,

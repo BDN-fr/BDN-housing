@@ -1,16 +1,15 @@
-RegisterNetEvent('Housing:s:CreateProperty', function (source, data)
+RegisterNetEvent('Housing:s:CreateProperty', function (data)
     local xPlayer = ESX.GetPlayerFromId(source)
     if xPlayer.job.name ~= Config.Job.name then return end
-    if not exports[Config.ox_inventory]:CanCarryItem(source, 'property_key', 1) then
-        Config.Notify(source, L('CantCarryKey'), 'error')
-        Config.Notify(source, L('CreationCanceled'), 'error')
+    if not exports[Config.ox_inventory]:CanCarryItem(xPlayer.source, 'property_key', 1) then
+        Config.Notify(xPlayer.source, L('CantCarryKey'), 'error')
+        Config.Notify(xPlayer.source, L('CreationCanceled'), 'error')
         return
     end
     local id = MySQL.insert.await('INSERT INTO `properties` (shell, enter_coords) VALUES (?, ?)', {
         data.shell, json.encode(data.enterCoords)
     })
-    print(id)
-    AddKey(id, source)
+    AddKey(id, xPlayer.source)
 end)
 
 function AddKey(propertyId, playerId)

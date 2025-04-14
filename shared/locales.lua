@@ -4,7 +4,8 @@ Locales = {
         PlaceEnter = 'Placer l\'entrée',
         InteriorType = 'Type d\'interrieur',
         CantCarryKey = 'Vous n\'avez pas la place de porter la clé',
-        CreationCanceled = 'Création de la propriété annulée'
+        CreationCanceled = 'Création de la propriété annulée',
+        JobMenuTitle = 'Menu Agent immo'
     }
 }
 

@@ -4,6 +4,7 @@ function WaitInput(message, key, cb)
         Wait(0)
         if IsControlJustReleased(0, key) then
             cb()
+            lib.hideTextUI()
             break
         end
     end
@@ -13,7 +14,7 @@ function DrawConfigMarker(coords)
     local m = Config.marker
     DrawMarker(
         m.type, 
-        coords.x, coords.y, coords.z,
+        coords.x, coords.y, coords.z+m.zOffset,
         m.dir.x, m.dir.y, m.dir.z,
         m.rot.x, m.rot.y, m.rot.z,
         m.scale.x, m.scale.y, m.scale.z,
@@ -35,7 +36,7 @@ function CreateProperty()
     local isCreatingProperty = true
     local enterCoords
     local price = 0
-    WaitInput('[E] : '+L('PlaceEnter'), 51, function ()
+    WaitInput('[E] : '..L('PlaceEnter'), 51, function ()
         enterCoords = GetEntityCoords(PlayerPedId())
         CreateThread(function ()
             while isCreatingProperty do
@@ -45,7 +46,7 @@ function CreateProperty()
         end)
     end)
     local shellsOptions = {}
-    for k,v in Config.Shells do
+    for k,v in pairs(Config.Shells) do
         table.insert(shellsOptions, {value = k, label = v.label})
     end
     local input = lib.inputDialog(L('CreateProperty'), {
