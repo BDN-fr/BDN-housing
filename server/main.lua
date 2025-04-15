@@ -34,6 +34,7 @@ MySQL.query('SELECT * FROM `properties`', {}, function (res)
         Properties[v.id] = v
     end
 end)
+PropertiesState = {}
 
 exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
     if not (payload.action == 'give' or payload.action == 'move') then return end

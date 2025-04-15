@@ -21,3 +21,27 @@ RegisterCommand('housing-job-menu', function ()
     OpenJobMenu()
 end, false)
 RegisterKeyMapping('housing-job-menu', L('JobMenuTitle'), 'keyboard', 'F6')
+
+lib.registerContext({
+    id = 'propertyMenu',
+    title = L('PropertyMenuTitle'),
+    canClose = true,
+    options = {
+        {
+            title = L('Exit'),
+            onSelect = function ()
+                ExitProperty()
+            end
+        },
+        {
+            title = L('LockUnlock'),
+            onSelect = function ()
+                TogglePropertyLock(CurrentPropertyId)
+            end
+        }
+    }
+})
+
+function OpenPropertyMenu(propertyId)
+    lib.showContext('propertyMenu')
+end

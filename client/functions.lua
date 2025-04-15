@@ -63,3 +63,27 @@ function CreateProperty()
     TriggerServerEvent('Housing:s:CreateProperty', data)
     isCreatingProperty = false
 end
+
+function SpawnShell(model, coords, props)
+    lib.requestModel(model)
+    local obj = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
+    FreezeEntityPosition(obj, true)
+    SetEntityCanBeDamaged(obj, false)
+    SetEntityCollision(obj, true, false)
+    SetEntityDynamic(obj, false)
+    SetEntityHasGravity(obj, false)
+    return obj
+end
+
+function RemoveShell(obj, model)
+    DeleteObject(obj)
+    SetModelAsNoLongerNeeded(model)
+end
+
+RegisterNetEvent('Housing:c:AddProperty', function (data)
+    Properties[data[1]] = data[2]
+end)
+
+RegisterNetEvent('Housing:c:RemoveProperty', function (id)
+    table.remove(Properties, id)
+end)

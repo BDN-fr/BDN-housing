@@ -6,7 +6,17 @@ Locales = {
         CantCarryKey = 'Vous n\'avez pas la place de porter la clé',
         CreationCanceled = 'Création de la propriété annulée',
         JobMenuTitle = 'Menu Agent immo',
-        Property = 'Propriété'
+        Property = 'Propriété',
+        Enter = 'Entrer',
+        Ring = 'Sonner',
+        LockUnlock = 'Vérouiller / Dévérouiller',
+        OpenMenu = 'Ouvrir le menu',
+        PropertyMenuTitle = 'Menu de la propriété',
+        Exit = 'Sortir',
+        LockedProperty = 'La propriété est vérouillée',
+        DontHaveKey = 'Vous n\'avez pas la clé',
+        OpenedDoor = 'Vous avez ouvert la porte',
+        ClosedDoor = 'Vous avez fermé la porte',
     }
 }
 

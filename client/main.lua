@@ -14,6 +14,10 @@ print(([[
   |_|__|   
 ]]):format(GetCurrentResourceName()))
 
+CurrentPropertyId = nil
+CurrentPropertyObj = nil
+CurrentPropertyProps = {}
+
 RegisterNetEvent('esx:setJob', function(job, lastJob)
     ESX.PlayerData.job = job
 end)
@@ -27,33 +31,8 @@ RegisterNetEvent('Housing:c:RegisterProperties', function (properties)
 end)
 TriggerServerEvent('Housing:s:HeySendMePropertiesPlease')
 
-CreateThread(function (threadId)
-    while not Properties do
-        Wait(1)
-    end
-    while true do
-        local nearestDist = math.maxinteger
-        local nearestCoords = vec3(0,0,0)
-        for k,v in pairs(Properties) do
-            local pos = GetEntityCoords(PlayerPedId())
-            local dist = #(v.enter_coords - pos)
-            if dist < nearestDist then
-                nearestDist = dist
-                nearestCoords = v.enter_coords
-            end
-        end
-        local waitTime = nearestDist/3
-        if nearestDist < 30 then
-            waitTime = 1
-            DrawConfigMarker(nearestCoords)
-        end
-        Wait(waitTime)
-    end
-end)
-
 RegisterNetEvent('Housing:c:SubToProperty', function (propertyId, state)
     local p = Properties[propertyId]
-    print(p, propertyId, type(propertyId))
     if not p then print('No property '..propertyId) return end
     if state then
         if not p.blip then
@@ -74,3 +53,137 @@ RegisterNetEvent('Housing:c:SubToProperty', function (propertyId, state)
         p.blip = nil
     end
 end)
+
+CreateThread(function (threadId)
+    local uiText = ("[E]: %s [G]: %s [H]: %s"):format(L('Enter'), L('Ring'), L('LockUnlock'))
+    local state
+    local stateText = ''
+    local nearestCoords, nearestId
+    RegisterNetEvent('Housing:c:UpdateState', function (propertyId, newState)
+        if nearestId == propertyId then
+            state = newState
+        end
+    end)
+
+    while not Properties do
+        Wait(1)
+    end
+    while true do
+        local nearestDist = math.maxinteger
+        for k,v in pairs(Properties) do
+            local pos = GetEntityCoords(PlayerPedId())
+            local dist = #(v.enter_coords - pos)
+            if dist < nearestDist then
+                nearestDist = dist
+                nearestCoords = v.enter_coords
+                nearestId = k
+            end
+        end
+        local waitTime = nearestDist/3
+        if nearestDist < 30 then
+            waitTime = 1
+            DrawConfigMarker(nearestCoords)
+        end
+        if nearestDist < 2 then
+            if not lib.isTextUIOpen() then
+                lib.callback('Housing:s:isPropertyLocked', 1000, function (res)
+                    state = res
+                end, nearestId)
+                lib.showTextUI(uiText)
+            end
+
+            stateText = state and '🔓' or '🔒'
+            ESX.Game.Utils.DrawText3D(vec3(nearestCoords.xy, nearestCoords.z+Config.stateOffset), stateText, 1.0, 1)
+
+            if IsControlJustReleased(0, 51) then
+                EnterProperty(nearestId)
+            end
+
+            if IsControlJustReleased(0, 47) then
+                RingProperty(nearestId)
+            end
+
+            if IsControlJustReleased(0, 74) then
+                TogglePropertyLock(nearestId)
+            end
+        else
+            local isOpen, currentText = lib.isTextUIOpen()
+            if isOpen and currentText == uiText then
+                lib.hideTextUI()
+            end
+        end
+        Wait(waitTime)
+    end
+end)
+
+-- TODO: Add furnitures spawn
+function EnterProperty(propertyId)
+    CreateThread(function (threadId)
+        local p = Properties[propertyId]
+
+        if not lib.callback.await('Housing:s:isPropertyLocked', 1000, propertyId) then
+            Config.Notify(L('LockedProperty'), 'error')
+            return
+        end
+
+        DoScreenFadeOut(500)
+        FreezeEntityPosition(PlayerPedId(), true)
+        local tpTime = GetGameTimer()+500
+
+        local coords = vec3(p.enter_coords.x, p.enter_coords.y, p.enter_coords.z+500)
+        local doorCoords = coords + Config.Shells[p.shell].door
+
+        CurrentPropertyObj = SpawnShell(p.shell, coords, {'TODO'})
+
+        Wait(tpTime-GetGameTimer())
+        SetEntityCoords(PlayerPedId(), doorCoords.x, doorCoords.y, doorCoords.z, false, false, false, false)
+
+        CurrentPropertyId = propertyId
+
+        DoScreenFadeIn(300)
+        FreezeEntityPosition(PlayerPedId(), false)
+
+        CreateThread(function (threadId)
+            local uiText = '[E]: '..L('OpenMenu')
+            while CurrentPropertyId == propertyId do
+                DrawConfigMarker(doorCoords)
+                local coords = GetEntityCoords(PlayerPedId())
+                local dist = #(coords - doorCoords)
+                if dist < 2 then
+                    if not lib.isTextUIOpen() then
+                        lib.showTextUI(uiText)
+                    end
+
+                    if IsControlJustReleased(0, 51) then
+                        OpenPropertyMenu(CurrentPropertyId)
+                    end
+                else
+                    local isOpen, currentText = lib.isTextUIOpen()
+                    if isOpen and currentText == uiText then
+                        lib.hideTextUI()
+                    end
+                end
+                Wait(0)
+            end
+        end)
+    end)
+end
+
+function ExitProperty()
+    DoScreenFadeOut(500)
+    FreezeEntityPosition(PlayerPedId(), true)
+    Wait(500)
+    RemoveShell(CurrentPropertyObj)
+    ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
+    SetEntityCoords(PlayerPedId(), Properties[CurrentPropertyId].enter_coords, false, false, false, false)
+    FreezeEntityPosition(PlayerPedId(), false)
+    DoScreenFadeIn(500)
+end
+
+function RingProperty(propertyId)
+    print('Ding DRRIIIIIIING')
+end
+
+function TogglePropertyLock(propertyId)
+    TriggerServerEvent('Housing:s:TogglePropertyLock', propertyId)
+end

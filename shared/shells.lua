@@ -1,7 +1,8 @@
 Config = Config or {}
 
 Config.Shells = {
-    ['shell_micheal'] = {
-        label = 'Maison de richou $$$'
+    ['shell_michael'] = {
+        label = 'Maison de richou $$$',
+        door = vec3(-8.914551, 5.559937, 1.1)
     }
 }

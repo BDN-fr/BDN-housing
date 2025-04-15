@@ -1,8 +1,8 @@
 Config = Config or {}
 
 Config.marker = { -- https://docs.fivem.net/natives/?_0x28477EC23D892089
-    type = 20,
-    zOffset = 0,
+    type = 23, -- https://docs.fivem.net/docs/game-references/markers/
+    zOffset = -0.95,
     dir = vec3(0.0,0.0,0.0),
     rot = vec3(0.0,0.0,0.0),
     scale = vec3(0.5,0.5,0.5),
@@ -13,11 +13,12 @@ Config.marker = { -- https://docs.fivem.net/natives/?_0x28477EC23D892089
     bobUpAndDown = false,
     faceCamera = false,
     rotationOrder = 2,
-    rotate = true,
+    rotate = false,
 	textureDict = nil,
 	textureName = nil,
 	drawOnEnts = false
 }
+Config.stateOffset = 0
 
 Config.blip = {
     -- https://docs.fivem.net/docs/game-references/blips/
@@ -36,5 +37,9 @@ end
 ---@diagnostic disable-next-line: duplicate-set-field
 Config.Notify = function (message, type)
     -- Put your function here
-    print(message, type)
+    lib.notify({description = message, type = type})
 end
+
+RegisterNetEvent('Housing:c:Notify', function (...)
+    Config.Notify(...)
+end)
