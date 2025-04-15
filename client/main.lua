@@ -57,7 +57,7 @@ RegisterNetEvent('Housing:c:SubToProperty', function (propertyId, state)
 end)
 
 CreateThread(function (threadId)
-    local uiText = ("[E]: %s [G]: %s [H]: %s"):format(L('Enter'), L('Ring'), L('LockUnlock'))
+    local uiText = L('PropertyEnterText')
     local state
     local stateText = ''
     local nearestCoords, nearestId

@@ -30,9 +30,12 @@ Config.blip = {
     showAtShortRange = true
 }
 
-Config.PlaceProp = function(handle)
-    exports['object_gizmo']:useGizmo(handle)
+Config.PlaceProp = function(model)
+    local prop = SpawnProp(model, GetEntityCoords(PlayerPedId()), false)
+    return exports['object_gizmo']:useGizmo(prop)
 end
+
+Config.previewCamOffset = vec3(5,5,5)
 
 ---@diagnostic disable-next-line: duplicate-set-field
 Config.Notify = function (message, type)

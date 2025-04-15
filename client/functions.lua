@@ -3,9 +3,9 @@ function WaitInput(message, keys, cb)
     while true do
         Wait(0)
         for i, key in ipairs(keys) do
-            if IsControlJustReleased(0, key) then
-                cb(key)
+            if IsControlJustReleased(0, key) or IsDisabledControlJustReleased(0, key) then
                 lib.hideTextUI()
+                cb(key)
                 return
             end
         end
@@ -64,12 +64,12 @@ function CreateProperty()
     isCreatingProperty = false
 end
 
-function SpawnProp(model, coords)
+function SpawnProp(model, coords, colisions)
     lib.requestModel(model)
     local obj = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
     FreezeEntityPosition(obj, true)
     SetEntityCanBeDamaged(obj, false)
-    SetEntityCollision(obj, true, false)
+    SetEntityCollision(obj, colisions or true, false)
     SetEntityDynamic(obj, false)
     SetEntityHasGravity(obj, false)
     SetModelAsNoLongerNeeded(model)
@@ -104,3 +104,62 @@ end)
 RegisterNetEvent('Housing:c:RemoveProperty', function (id)
     table.remove(Properties, id)
 end)
+
+
+local cam
+local prop
+local propCoords
+function StartPreview()
+    propCoords = GetEntityCoords(PlayerPedId(), false) + vec3(0,0,150)
+    cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
+    local camCoords = propCoords + Config.previewCamOffset
+    SetCamCoord(cam, camCoords.x, camCoords.y, camCoords.z)
+    PointCamAtCoord(cam, propCoords.x, propCoords.y, propCoords.z)
+    RenderScriptCams(true, false, 0, false, true)
+    FreezeEntityPosition(PlayerPedId(), true)
+    CreateThread(function (threadId)
+        while cam do
+            DisableControlAction(0, 51, true)
+            Wait(0)
+        end
+    end)
+end
+
+function PreviewProp(model)
+    if prop then
+        DeleteObject(prop)
+    end
+    local s
+    prop = SpawnProp(model, propCoords)
+    local min, max = GetModelDimensions(model)
+    local size = max-min
+    local camCoords = propCoords + size*1.5
+    SetCamCoord(cam, camCoords.x, camCoords.y, camCoords.z)
+    PointCamAtCoord(cam, propCoords.x, propCoords.y, propCoords.z+size.z/2)
+    local currentProp = prop
+    CreateThread(function (threadId)
+        while prop == currentProp do
+            SetEntityHeading(currentProp, GetEntityHeading(currentProp)+1)
+            Wait(1)
+        end
+    end)
+end
+
+function StopPreview()
+    DestroyCam(cam, true)
+    DeleteObject(prop)
+    cam = nil
+    prop = nil
+    RenderScriptCams(false, false, 0, false, true)
+    FreezeEntityPosition(PlayerPedId(), false)
+end
+
+function PlaceFurnitureInProperty(propertyId, model)
+    local data = Config.PlaceProp(model)
+    data.model = model
+    print(json.encode(data))
+    -- TriggerServerEvent "PlaceFurnitureInProperty" data
+    -- - model = model
+    -- - position (x,y,z)
+    -- - rotation (x,y,z)
+end
