@@ -8,3 +8,5 @@ Config.lang = 'fr'
 Config.Job = {
     name = 'rea'
 }
+
+Config.maxFurnitures = 500

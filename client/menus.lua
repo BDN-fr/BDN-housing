@@ -38,10 +38,37 @@ lib.registerContext({
             onSelect = function ()
                 TogglePropertyLock(CurrentPropertyId)
             end
+        },
+        {
+            title = L('FurnitureMenuTitle'),
+            onSelect = function ()
+                OpenFurnitureMenu()
+            end
         }
     }
 })
 
 function OpenPropertyMenu(propertyId)
     lib.showContext('propertyMenu')
+end
+
+lib.registerMenu({
+    id = 'furnitureMenu',
+    title = L('FurnitureMenuTitle'),
+    options = {
+        {
+            label = L('PreviewFurnitures'),
+            checked = false
+        }
+    },
+    canClose = true,
+    onCheck = function (selected, checked, args)
+        print(selected, checked, args)
+    end
+}, function(selected, scrollIndex, args)
+    print(selected, scrollIndex, args)
+end)
+
+function OpenFurnitureMenu()
+    lib.showMenu('furnitureMenu')
 end

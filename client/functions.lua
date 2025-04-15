@@ -64,7 +64,7 @@ function CreateProperty()
     isCreatingProperty = false
 end
 
-function SpawnShell(model, coords, props)
+function SpawnProp(model, coords)
     lib.requestModel(model)
     local obj = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
     FreezeEntityPosition(obj, true)
@@ -72,12 +72,29 @@ function SpawnShell(model, coords, props)
     SetEntityCollision(obj, true, false)
     SetEntityDynamic(obj, false)
     SetEntityHasGravity(obj, false)
+    SetModelAsNoLongerNeeded(model)
     return obj
 end
 
-function RemoveShell(obj, model)
+function RemoveShell(obj)
     DeleteObject(obj)
-    SetModelAsNoLongerNeeded(model)
+end
+
+function SpawnFurnitures(propertyCoords, furnitures)
+    for i, v in ipairs(furnitures) do
+        local coords = json.decode(v.coords)
+        coords = vec3(coords.x, coords.y, coords.z)
+        local obj = SpawnProp(v.model, propertyCoords + coords)
+        local rot = json.decode(v.rotation)
+        SetEntityRotation(obj, rot.pitch, rot.roll, rot.yaw, 2, false)
+        table.insert(CurrentPropertyFurnitures, obj)
+    end
+end
+
+function RemoveFurnitures(furnitures)
+    for i, v in ipairs(furnitures) do
+        DeleteObject(v)
+    end
 end
 
 RegisterNetEvent('Housing:c:AddProperty', function (data)

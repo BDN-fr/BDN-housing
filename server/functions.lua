@@ -45,3 +45,23 @@ RegisterNetEvent('Housing:s:TogglePropertyLock', function (propertyId)
         TriggerClientEvent('Housing:c:UpdateState', v.id, propertyId, PropertiesState[propertyId])
     end
 end)
+
+lib.callback.register('Housing:s:EnterProperty', function (source, propertyId)
+    SetPlayerRoutingBucket(source, propertyId)
+    PlayersInsideProperties[source] = propertyId
+    local xPlayer = ESX.GetPlayerFromId(source)
+    xPlayer.setMeta('insideProperty', propertyId)
+end)
+
+lib.callback.register('Housing:s:ExitProperty', function (source)
+    SetPlayerRoutingBucket(source, 0)
+    PlayersInsideProperties[source] = nil
+    local xPlayer = ESX.GetPlayerFromId(source)
+    xPlayer.clearMeta('insideProperty')
+end)
+
+lib.callback.register('Housing:s:GetPropertyFurnitures', function (source, propertyId)
+    return MySQL.query.await('SELECT * FROM `properties_furnitures` WHERE property_id = ?', {
+        propertyId
+    })
+end)

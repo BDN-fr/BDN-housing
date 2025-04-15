@@ -17,6 +17,10 @@ Locales = {
         DontHaveKey = 'Vous n\'avez pas la clé',
         OpenedDoor = 'Vous avez ouvert la porte',
         ClosedDoor = 'Vous avez fermé la porte',
+        FurnitureMenuTitle = 'Menu d\'ammeublement',
+        PreviewFurnitures = 'Prévisualiser les meubles',
+        PlacedFurnitureList = 'Liste des meubles placés',
+        PlaceFurniture = 'Placer le meuble',
     }
 }
 

@@ -16,7 +16,7 @@ print(([[
 
 CurrentPropertyId = nil
 CurrentPropertyObj = nil
-CurrentPropertyProps = {}
+CurrentPropertyFurnitures = {}
 
 RegisterNetEvent('esx:setJob', function(job, lastJob)
     ESX.PlayerData.job = job
@@ -24,6 +24,8 @@ end)
 
 RegisterNetEvent('esx:playerLoaded', function(xPlayer, isNew, skin)
     ESX.PlayerData = xPlayer
+    -- If changing character
+    CurrentPropertyId = nil
 end)
 
 RegisterNetEvent('Housing:c:RegisterProperties', function (properties)
@@ -96,7 +98,11 @@ CreateThread(function (threadId)
             ESX.Game.Utils.DrawText3D(vec3(nearestCoords.xy, nearestCoords.z+Config.stateOffset), stateText, 1.0, 1)
 
             if IsControlJustReleased(0, 51) then
-                EnterProperty(nearestId)
+                if state then
+                    EnterProperty(nearestId)
+                else
+                    Config.Notify(L('LockedProperty'), 'error')
+                end
             end
 
             if IsControlJustReleased(0, 47) then
@@ -121,11 +127,6 @@ function EnterProperty(propertyId)
     CreateThread(function (threadId)
         local p = Properties[propertyId]
 
-        if not lib.callback.await('Housing:s:isPropertyLocked', 1000, propertyId) then
-            Config.Notify(L('LockedProperty'), 'error')
-            return
-        end
-
         DoScreenFadeOut(500)
         FreezeEntityPosition(PlayerPedId(), true)
         local tpTime = GetGameTimer()+500
@@ -133,14 +134,20 @@ function EnterProperty(propertyId)
         local coords = vec3(p.enter_coords.x, p.enter_coords.y, p.enter_coords.z+500)
         local doorCoords = coords + Config.Shells[p.shell].door
 
-        CurrentPropertyObj = SpawnShell(p.shell, coords, {'TODO'})
+        -- This is a callback because we need to wait to be in the right bucket
+        lib.callback.await('Housing:s:EnterProperty', 1000, propertyId)
+
+        CurrentPropertyObj = SpawnProp(p.shell, coords)
+
+        local furnitures = lib.callback.await('Housing:s:GetPropertyFurnitures', propertyId)
+        SpawnFurnitures(coords, furnitures)
 
         Wait(tpTime-GetGameTimer())
         SetEntityCoords(PlayerPedId(), doorCoords.x, doorCoords.y, doorCoords.z, false, false, false, false)
 
         CurrentPropertyId = propertyId
 
-        DoScreenFadeIn(300)
+        DoScreenFadeIn(500)
         FreezeEntityPosition(PlayerPedId(), false)
 
         CreateThread(function (threadId)
@@ -168,12 +175,16 @@ function EnterProperty(propertyId)
         end)
     end)
 end
+RegisterNetEvent('Housing:c:EnterProperty', EnterProperty)
 
 function ExitProperty()
     DoScreenFadeOut(500)
     FreezeEntityPosition(PlayerPedId(), true)
     Wait(500)
     RemoveShell(CurrentPropertyObj)
+    RemoveFurnitures(CurrentPropertyFurnitures)
+    -- This is a callback because we need to wait to be in the right bucket
+    lib.callback.await('Housing:s:ExitProperty', 1000)
     ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
     SetEntityCoords(PlayerPedId(), Properties[CurrentPropertyId].enter_coords, false, false, false, false)
     FreezeEntityPosition(PlayerPedId(), false)

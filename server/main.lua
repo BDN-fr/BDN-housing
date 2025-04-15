@@ -5,17 +5,6 @@
 --     |_|__|   |_|  |_|  \____/   \____/   \____/ |______| |_| \__|  \____/ 
 -- By BDN_fr - https://bdn-fr.xyz/ | For Olympe WL - https://discord.gg/fH8bSDBFvK
 
-local file = io.open(("@%s/sql.sql"):format(GetCurrentResourceName()), "r")
-if not file then
-    error('sql.sql not found, please create a sql.sql file with the script\'s SQL', 0)
-else
-    local fileContent = file:read("*a")
-    MySQL.rawExecute(fileContent, function ()
-        print('SQL successfully executed')
-    end)
-    file:close()
-end
-
 print(([[
 
     /\     
@@ -24,6 +13,18 @@ print(([[
   |_   |   For Omlympe WL - https://discord.gg/fH8bSDBFvK
   |_|__|   
 ]]):format(GetCurrentResourceName()))
+
+local file = io.open(("@%s/sql.sql"):format(GetCurrentResourceName()), "r")
+if not file then
+    error('sql.sql not found, please create a sql.sql file with the script\'s SQL', 0)
+else
+    local fileContent = file:read("*a")
+    for v in string.gmatch(fileContent, '[^;]*;') do
+        MySQL.rawExecute.await(v)
+    end
+    print('SQL successfully executed')
+    file:close()
+end
 
 Properties = {}
 MySQL.query('SELECT * FROM `properties`', {}, function (res)
@@ -35,6 +36,8 @@ MySQL.query('SELECT * FROM `properties`', {}, function (res)
     end
 end)
 PropertiesState = {}
+PlayersInsideProperties = {}
+PropertiesPlayers = {}
 
 exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
     if not (payload.action == 'give' or payload.action == 'move') then return end
@@ -85,6 +88,10 @@ RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer, isNew)
         if v.metadata.propertyId then
             SubPlayeyToProperty(v.metadata.propertyId, playerId, true)
         end
+    end
+
+    if xPlayer.getMeta('insideProperty') then
+        TriggerClientEvent('Housing:c:EnterProperty', playerId, xPlayer.getMeta('insideProperty'))
     end
 end)
 
