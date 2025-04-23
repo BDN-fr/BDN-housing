@@ -207,7 +207,8 @@ function ExitProperty()
 end
 
 function RingProperty(propertyId)
-    print('Ding DRRIIIIIIING')
+    TriggerServerEvent('Housing:s:RingProperty', propertyId)
+    Config.Notify(L('YouRinged'), 'success')
 end
 
 function TogglePropertyLock(propertyId)

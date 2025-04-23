@@ -60,7 +60,7 @@ Config.selectedFurnitureOutline = {
 
 ---@diagnostic disable-next-line: duplicate-set-field
 Config.Notify = function (message, type)
-    -- Put your function here
+    -- Possible types : 'inform', 'success', 'error', 'warning'
     lib.notify({description = message, type = type})
 end
 

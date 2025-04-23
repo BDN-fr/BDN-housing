@@ -30,7 +30,10 @@ Locales = {
         Deleted = 'Supprimé',
         ChangePos = 'Changer la position',
         GetKey = 'Récupérer une clé',
-        CantGetKey = 'Vous devez avoir une clé de la propriété pour récupérer une autre clé'
+        CantGetKey = 'Vous devez avoir une clé de la propriété pour récupérer une autre clé',
+        NoFurnitures = 'Il n\'y a aucun meuble',
+        Ringed = 'Quelqu\'un sonne à la porte',
+        YouRinged = 'Vous avez sonné',
     }
 }
 

@@ -114,36 +114,37 @@ RegisterNetEvent('Housing:c:RemoveProperty', function (id)
 end)
 
 
-local cam
+-- local cam
 local prop
-local propCoords
-function StartPreview()
-    propCoords = GetEntityCoords(PlayerPedId(), false) + vec3(0,0,150)
-    cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
-    local camCoords = propCoords + Config.previewCamOffset
-    SetCamCoord(cam, camCoords.x, camCoords.y, camCoords.z)
-    PointCamAtCoord(cam, propCoords.x, propCoords.y, propCoords.z)
-    RenderScriptCams(true, false, 0, false, true)
-    FreezeEntityPosition(PlayerPedId(), true)
-    CreateThread(function (threadId)
-        while cam do
-            DisableControlAction(0, 51, true)
-            Wait(0)
-        end
-    end)
-end
+-- local propCoords
+-- function StartPreview()
+--     propCoords = GetEntityCoords(PlayerPedId(), false) + vec3(0,0,150)
+--     cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
+--     local camCoords = propCoords + Config.previewCamOffset
+--     SetCamCoord(cam, camCoords.x, camCoords.y, camCoords.z)
+--     PointCamAtCoord(cam, propCoords.x, propCoords.y, propCoords.z)
+--     RenderScriptCams(true, false, 0, false, true)
+--     FreezeEntityPosition(PlayerPedId(), true)
+--     CreateThread(function (threadId)
+--         while cam do
+--             DisableControlAction(0, 51, true)
+--             Wait(0)
+--         end
+--     end)
+-- end
 
 function PreviewProp(model)
     if prop then
         DeleteObject(prop)
     end
-    local s
-    prop = SpawnProp(model, propCoords)
-    local min, max = GetModelDimensions(model)
-    local size = max-min
-    local camCoords = propCoords + size*1.5
-    SetCamCoord(cam, camCoords.x, camCoords.y, camCoords.z)
-    PointCamAtCoord(cam, propCoords.x, propCoords.y, propCoords.z+size.z/2)
+    -- prop = SpawnProp(model, propCoords)
+    -- local min, max = GetModelDimensions(model)
+    -- local size = max-min
+    -- local camCoords = propCoords + size*1.5
+    -- SetCamCoord(cam, camCoords.x, camCoords.y, camCoords.z)
+    -- PointCamAtCoord(cam, propCoords.x, propCoords.y, propCoords.z+size.z/2)
+    local propCoords = GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 3
+    prop = SpawnProp(model, propCoords) -- Remvove this line if you bring back the cam in the sky
     local currentProp = prop
     CreateThread(function (threadId)
         while prop == currentProp do
@@ -154,12 +155,12 @@ function PreviewProp(model)
 end
 
 function StopPreview()
-    DestroyCam(cam, true)
+    -- DestroyCam(cam, true)
     DeleteObject(prop)
-    cam = nil
-    prop = nil
-    RenderScriptCams(false, false, 0, false, true)
-    FreezeEntityPosition(PlayerPedId(), false)
+    -- cam = nil
+    -- prop = nil
+    -- RenderScriptCams(false, false, 0, false, true)
+    -- FreezeEntityPosition(PlayerPedId(), false)
 end
 
 function PlaceFurniture(model)
@@ -168,7 +169,9 @@ function PlaceFurniture(model)
     furniture.model = model
     furniture.coords = json.encode(data.position - CurrentPropertyCoords)
     furniture.rotation = json.encode(data.rotation)
-    TriggerServerEvent('Housing:s:AddPropertyFurniture', CurrentPropertyId, furniture)
+    -- Client need to wait
+    lib.callback.await('Housing:s:AddPropertyFurniture', 1000, CurrentPropertyId, furniture)
+    -- TriggerServerEvent('Housing:s:AddPropertyFurniture', CurrentPropertyId, furniture)
 end
 
 RegisterNetEvent('Housing:c:AddFurnitureInCurrentProperty', function (furniture)
@@ -176,7 +179,9 @@ RegisterNetEvent('Housing:c:AddFurnitureInCurrentProperty', function (furniture)
 end)
 
 function DeleteFurniture(propertyId, id)
-    TriggerServerEvent('Housing:s:DeletePropertyFurniture', propertyId, id)
+    -- Client need to wait
+    lib.callback.await('Housing:s:DeletePropertyFurniture', 1000, propertyId, id)
+    -- TriggerServerEvent('Housing:s:DeletePropertyFurniture', propertyId, id)
 end
 
 RegisterNetEvent('Housing:c:RemoveFurnitureInCurrentProperty', function (id)

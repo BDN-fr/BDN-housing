@@ -15,10 +15,6 @@
 - [ ] Suppression, vente et possibilité de vider les maisons pour le métier
 - [ ] Sonnette
 
-fix:
-  - suppression des props
-  - création de property
-
 scripts:
 - garage : https://github.com/renzuzu/renzu_garage
 - gizmo : https://github.com/DemiAutomatic/object_gizmo

@@ -2,7 +2,7 @@ function CreateProperty(data)
     local id = MySQL.insert.await('INSERT INTO `properties` (shell, enter_coords) VALUES (?, ?)', {
         data.shell, json.encode(data.enterCoords)
     })
-    Properties[id] = {shell = data.shell, coords = data.enterCoords}
+    Properties[id] = {shell = data.shell, enter_coords = data.enterCoords}
     TriggerClientEvent('Housing:c:AddProperty', -1, {id, Properties[id]})
     return id
 end
@@ -107,11 +107,10 @@ function AddPropertyFurniture(propertyId, furniture)
     end
 end
 
-RegisterNetEvent('Housing:s:AddPropertyFurniture', function (propertyId, furniture)
-    local source = source
+lib.callback.register('Housing:s:AddPropertyFurniture', function (source, propertyId, furniture)
     if not DoesPlayerHavePropertyKey(propertyId, source) then return end
     if not (GetPropertyFurnituresAmount(propertyId) < Config.maxFurnitures) then
-        Config.Notify(source, L('FurnituresLimitReached'))
+        Config.Notify(source, L('FurnituresLimitReached'), 'error')
         return
     end
     AddPropertyFurniture(propertyId, furniture)
@@ -131,4 +130,18 @@ end
 RegisterNetEvent('Housing:s:DeletePropertyFurniture', function (propertyId, furnitureId)
     if not DoesPlayerHavePropertyKey(propertyId, source) then return end
     DeleteFurniture(propertyId, furnitureId)
+end)
+
+-- Making client wait for reoppening the menu
+lib.callback.register('Housing:s:DeletePropertyFurniture', function (source, propertyId, furnitureId)
+    if not DoesPlayerHavePropertyKey(propertyId, source) then return end
+    DeleteFurniture(propertyId, furnitureId)
+end)
+
+RegisterNetEvent('Housing:s:RingProperty', function (propertyId)
+    for playerId, pId in pairs(PlayersInsideProperties) do
+        if pId == propertyId then
+            Config.Notify(playerId, L('Ringed'), 'inform')
+        end
+    end
 end)

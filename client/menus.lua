@@ -68,9 +68,7 @@ lib.registerMenu({
         {
             label = L('PlacedFurnitures'),
             args = {
-                func = function (selected, scrollIndex, args)
-                    OpenPlacedFurnituresMenu()
-                end
+                action = 'OpenPlacedFurnituresMenu'
             }
         },
         {
@@ -87,12 +85,14 @@ lib.registerMenu({
     canClose = true,
     onCheck = function (selected, checked, args)
         if selected == 2 then
-            if checked then
-                StartPreview()
-                isPreviewActive = true
-            else
+            isPreviewActive = checked
+            -- if checked then
+            --     -- StartPreview()
+            -- else
+            --     -- StopPreview()
+            -- end
+            if not checked then
                 StopPreview()
-                isPreviewActive = false
             end
         end
     end,
@@ -127,9 +127,9 @@ lib.registerMenu({
             end
             OpenFurnitureMenu()
         end
-    end
-    if args?.func then
-        args.func(selected, scrollIndex, args)
+        if args.action == 'OpenPlacedFurnituresMenu' then
+            OpenPlacedFurnituresMenu()
+        end
     end
 end)
 
@@ -139,6 +139,16 @@ function OpenFurnitureMenu()
         return
     end
     if lib.getOpenMenu() then return end
+    local count = 0
+    for k, v in pairs(CurrentPropertyFurnitures) do
+        count += 1
+    end
+    lib.setMenuOptions('furnitureMenu', {
+        label = L('PlacedFurnitures')..(' | %s/%s'):format(count, Config.maxFurnitures),
+        args = {
+            action = 'OpenPlacedFurnituresMenu'
+        }
+    }, 1)
     lib.showMenu('furnitureMenu')
 end
 RegisterCommand('housing-furniture-menu', function ()
@@ -159,6 +169,7 @@ lib.registerMenu({
         OpenFurnitureMenu()
     end,
     onSelected = function (selected, secondary, args)
+        if not args.entity then return end
         if currentEntity then
             SetEntityDrawOutline(currentEntity, false)
         end
@@ -166,6 +177,7 @@ lib.registerMenu({
         SetEntityDrawOutline(currentEntity, true)
     end
 }, function(selected, scrollIndex, args)
+    if not args.entity then return end
     SetEntityDrawOutline(args.entity, false)
     DeleteFurniture(CurrentPropertyId, args.id)
     if scrollIndex == 2 then
@@ -187,6 +199,11 @@ function OpenPlacedFurnituresMenu()
                 model = v.model,
                 entity = v.obj
             },
+        })
+    end
+    if #options == 0 then
+        table.insert(options, {
+            label = L('NoFurnitures')
         })
     end
     lib.setMenuOptions('placedFurnituresMenu', options)
