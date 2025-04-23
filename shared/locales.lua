@@ -15,15 +15,22 @@ Locales = {
         DontHaveKey = 'Vous n\'avez pas la clé',
         OpenedDoor = 'Vous avez ouvert la porte',
         ClosedDoor = 'Vous avez fermé la porte',
-        FurnitureMenuTitle = 'Menu d\'ammeublement',
+        FurnitureMenuTitle = 'Menu d\'ameublement',
         PreviewFurnitures = 'Prévisualiser les meubles',
-        PlacedFurnitureList = 'Liste des meubles placés',
+        PlacedFurnitures = 'Meubles placés',
         PlaceFurniture = 'Placer le meuble',
         PlaceCustomModel = 'Placer un modèle',
         Model = 'Modèle',
         InvalidModel = 'Modèle invalide',
         PreviewValidationText = '[E] - Valider  \n[X] - Annuler',
-        ToggleLock = 'Vérouiller / Dévérouiller'
+        ToggleLock = 'Vérouiller / Dévérouiller',
+        FurnituresLimitReached = 'Limite de meubles atteinte',
+        YouNeedToBeInside = 'Vous devez être en interieur pour ouvrir ce menu',
+        Delete = 'Supprimer',
+        Deleted = 'Supprimé',
+        ChangePos = 'Changer la position',
+        GetKey = 'Récupérer une clé',
+        CantGetKey = 'Vous devez avoir une clé de la propriété pour récupérer une autre clé'
     }
 }
 

@@ -18,18 +18,34 @@ function AddKey(propertyId, playerId)
     })
 end
 
+RegisterNetEvent('Housing:s:giveKey', function (propertyId)
+    local source = source
+    if not DoesPlayerHavePropertyKey(propertyId, source) then
+        Config.Notify(source, L('CantGetKey'), 'error')
+        return
+    end
+    AddKey(propertyId, source)
+end)
+
 function SubPlayeyToProperty(propertyId, playerId, state)
-    -- print(('Subbed [%s] to property [%s]'):format(playerId, propertyId), state)
     TriggerClientEvent('Housing:c:SubToProperty', playerId, propertyId, state)
 end
 
-lib.callback.register('Housing:s:isPropertyLocked', function (source, propertyId)
+lib.callback.register('Housing:s:IsPropertyLocked', function (source, propertyId)
     return PropertiesState[propertyId] or false
+end)
+
+function DoesPlayerHavePropertyKey(propertyId, playerId)
+    return exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', {propertyId = propertyId}, true) > 0
+end
+
+lib.callback.register('Housing:s:DoesIHavePropertyKey', function (source, propertyId)
+    return DoesPlayerHavePropertyKey(propertyId, source)
 end)
 
 RegisterNetEvent('Housing:s:TogglePropertyLock', function (propertyId)
     local source = source
-    if not (exports[Config.ox_inventory]:GetItemCount(source, 'property_key', {propertyId = propertyId}, true) > 0) then
+    if not DoesPlayerHavePropertyKey(propertyId, source) then
         Config.Notify(source, L('DontHaveKey'), 'error')
         return
     end
@@ -53,15 +69,66 @@ lib.callback.register('Housing:s:EnterProperty', function (source, propertyId)
     xPlayer.setMeta('insideProperty', propertyId)
 end)
 
-lib.callback.register('Housing:s:ExitProperty', function (source)
-    SetPlayerRoutingBucket(source, 0)
+lib.callback.register('Housing:s:ExitProperty', function (source, clearMeta)
+    clearMeta = not clearMeta == false
+    SetPlayerRoutingBucket(source, Config.defaultRoutingBucket)
     PlayersInsideProperties[source] = nil
     local xPlayer = ESX.GetPlayerFromId(source)
-    xPlayer.clearMeta('insideProperty')
+    if clearMeta then
+        xPlayer.clearMeta('insideProperty')
+    end
 end)
 
-lib.callback.register('Housing:s:GetPropertyFurnitures', function (source, propertyId)
+function GetPropertyFurnitures(propertyId)
     return MySQL.query.await('SELECT * FROM `properties_furnitures` WHERE property_id = ?', {
         propertyId
     })
+end
+
+lib.callback.register('Housing:s:GetPropertyFurnitures', function (source, propertyId)
+    return GetPropertyFurnitures(propertyId)
+end)
+
+function GetPropertyFurnituresAmount(propertyId)
+    return MySQL.query.await('SELECT COUNT(*) FROM `properties_furnitures` WHERE property_id = ?', {
+        propertyId
+    })[1]["COUNT(*)"]
+end
+
+function AddPropertyFurniture(propertyId, furniture)
+    local id = MySQL.insert.await('INSERT INTO `properties_furnitures` (property_id, model, coords, rotation) VALUES (?,?,?,?)', {
+        propertyId, furniture.model, furniture.coords, furniture.rotation
+    })
+    furniture.id = id
+    for playerId, pId in pairs(PlayersInsideProperties) do
+        if pId == propertyId then
+            TriggerClientEvent('Housing:c:AddFurnitureInCurrentProperty', playerId, furniture)
+        end
+    end
+end
+
+RegisterNetEvent('Housing:s:AddPropertyFurniture', function (propertyId, furniture)
+    local source = source
+    if not DoesPlayerHavePropertyKey(propertyId, source) then return end
+    if not (GetPropertyFurnituresAmount(propertyId) < Config.maxFurnitures) then
+        Config.Notify(source, L('FurnituresLimitReached'))
+        return
+    end
+    AddPropertyFurniture(propertyId, furniture)
+end)
+
+function DeleteFurniture(propertyId, furnitureId)
+    MySQL.rawExecute.await('DELETE FROM `properties_furnitures` WHERE id = ?', {
+        furnitureId
+    })
+    for playerId, pId in pairs(PlayersInsideProperties) do
+        if pId == propertyId then
+            TriggerClientEvent('Housing:c:RemoveFurnitureInCurrentProperty', playerId, furnitureId)
+        end
+    end
+end
+
+RegisterNetEvent('Housing:s:DeletePropertyFurniture', function (propertyId, furnitureId)
+    if not DoesPlayerHavePropertyKey(propertyId, source) then return end
+    DeleteFurniture(propertyId, furnitureId)
 end)

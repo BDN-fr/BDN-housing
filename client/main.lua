@@ -16,6 +16,7 @@ print(([[
 
 CurrentPropertyId = nil
 CurrentPropertyObj = nil
+CurrentPropertyCoords = nil
 CurrentPropertyFurnitures = {}
 
 RegisterNetEvent('esx:setJob', function(job, lastJob)
@@ -24,8 +25,14 @@ end)
 
 RegisterNetEvent('esx:playerLoaded', function(xPlayer, isNew, skin)
     ESX.PlayerData = xPlayer
-    -- If changing character
+    -- When changing character
+    ---@diagnostic disable-next-line: param-type-mismatch
+    DeleteObject(CurrentPropertyObj)
+    CurrentPropertyObj = nil
+    RemoveFurnitures(CurrentPropertyFurnitures)
     CurrentPropertyId = nil
+    CurrentPropertyCoords = nil
+    lib.callback.await('Housing:s:ExitProperty', 1000, false)
 end)
 
 RegisterNetEvent('Housing:c:RegisterProperties', function (properties)
@@ -88,7 +95,7 @@ CreateThread(function (threadId)
         end
         if nearestDist < 2 then
             if not lib.isTextUIOpen() then
-                lib.callback('Housing:s:isPropertyLocked', 1000, function (res)
+                lib.callback('Housing:s:IsPropertyLocked', 1000, function (res)
                     state = res
                 end, nearestId)
                 lib.showTextUI(uiText)
@@ -122,7 +129,6 @@ CreateThread(function (threadId)
     end
 end)
 
--- TODO: Add furnitures spawn
 function EnterProperty(propertyId)
     CreateThread(function (threadId)
         local p = Properties[propertyId]
@@ -132,6 +138,7 @@ function EnterProperty(propertyId)
         local tpTime = GetGameTimer()+500
 
         local coords = vec3(p.enter_coords.x, p.enter_coords.y, p.enter_coords.z+500)
+        CurrentPropertyCoords = coords
         local doorCoords = coords + Config.Shells[p.shell].door
 
         -- This is a callback because we need to wait to be in the right bucket
@@ -139,7 +146,7 @@ function EnterProperty(propertyId)
 
         CurrentPropertyObj = SpawnProp(p.shell, coords)
 
-        local furnitures = lib.callback.await('Housing:s:GetPropertyFurnitures', propertyId)
+        local furnitures = lib.callback.await('Housing:s:GetPropertyFurnitures', 100, propertyId)
         SpawnFurnitures(coords, furnitures)
 
         Wait(tpTime-GetGameTimer())
@@ -172,6 +179,10 @@ function EnterProperty(propertyId)
                 end
                 Wait(0)
             end
+            local isOpen, currentText = lib.isTextUIOpen()
+            if isOpen and currentText == uiText then
+                lib.hideTextUI()
+            end
         end)
     end)
 end
@@ -181,12 +192,16 @@ function ExitProperty()
     DoScreenFadeOut(500)
     FreezeEntityPosition(PlayerPedId(), true)
     Wait(500)
-    RemoveShell(CurrentPropertyObj)
+    ---@diagnostic disable-next-line: param-type-mismatch
+    DeleteObject(CurrentPropertyObj)
     RemoveFurnitures(CurrentPropertyFurnitures)
     -- This is a callback because we need to wait to be in the right bucket
     lib.callback.await('Housing:s:ExitProperty', 1000)
     ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
     SetEntityCoords(PlayerPedId(), Properties[CurrentPropertyId].enter_coords, false, false, false, false)
+    CurrentPropertyId = nil
+    CurrentPropertyObj = nil
+    CurrentPropertyCoords = nil
     FreezeEntityPosition(PlayerPedId(), false)
     DoScreenFadeIn(500)
 end

@@ -64,36 +64,44 @@ function CreateProperty()
     isCreatingProperty = false
 end
 
-function SpawnProp(model, coords, colisions)
+function SpawnProp(model, coords, collisions)
     lib.requestModel(model)
-    local obj = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
+    local obj = CreateObjectNoOffset(model, coords.x, coords.y, coords.z, false, false, false)
     FreezeEntityPosition(obj, true)
     SetEntityCanBeDamaged(obj, false)
-    SetEntityCollision(obj, colisions or true, false)
+    SetEntityCollision(obj, collisions or true, false)
     SetEntityDynamic(obj, false)
     SetEntityHasGravity(obj, false)
     SetModelAsNoLongerNeeded(model)
     return obj
 end
 
-function RemoveShell(obj)
-    DeleteObject(obj)
+function SpawnFurniture(propertyCoords, v)
+    local coords = json.decode(v.coords)
+    coords = vec3(coords.x, coords.y, coords.z) + propertyCoords
+    local obj = SpawnProp(v.model, coords)
+    SetEntityCoordsNoOffset(obj, coords.x, coords.y, coords.z, false, false, false)
+    local rot = json.decode(v.rotation)
+    SetEntityRotation(obj, rot.x, rot.y, rot.z, 2, false)
+    CurrentPropertyFurnitures[v.id] = {model = v.model, obj = obj}
 end
 
 function SpawnFurnitures(propertyCoords, furnitures)
     for i, v in ipairs(furnitures) do
-        local coords = json.decode(v.coords)
-        coords = vec3(coords.x, coords.y, coords.z)
-        local obj = SpawnProp(v.model, propertyCoords + coords)
-        local rot = json.decode(v.rotation)
-        SetEntityRotation(obj, rot.pitch, rot.roll, rot.yaw, 2, false)
-        table.insert(CurrentPropertyFurnitures, obj)
+        SpawnFurniture(propertyCoords, v)
     end
+end
+
+function RemoveFurniture(id)
+    DeleteObject(CurrentPropertyFurnitures[id].obj)
+    CurrentPropertyFurnitures[id] = nil
 end
 
 function RemoveFurnitures(furnitures)
     for i, v in ipairs(furnitures) do
-        DeleteObject(v)
+        if v then
+            RemoveFurniture(i)
+        end
     end
 end
 
@@ -154,12 +162,23 @@ function StopPreview()
     FreezeEntityPosition(PlayerPedId(), false)
 end
 
-function PlaceFurnitureInProperty(propertyId, model)
+function PlaceFurniture(model)
     local data = Config.PlaceProp(model)
-    data.model = model
-    print(json.encode(data))
-    -- TriggerServerEvent "PlaceFurnitureInProperty" data
-    -- - model = model
-    -- - position (x,y,z)
-    -- - rotation (x,y,z)
+    local furniture = {}
+    furniture.model = model
+    furniture.coords = json.encode(data.position - CurrentPropertyCoords)
+    furniture.rotation = json.encode(data.rotation)
+    TriggerServerEvent('Housing:s:AddPropertyFurniture', CurrentPropertyId, furniture)
 end
+
+RegisterNetEvent('Housing:c:AddFurnitureInCurrentProperty', function (furniture)
+    SpawnFurniture(CurrentPropertyCoords, furniture)
+end)
+
+function DeleteFurniture(propertyId, id)
+    TriggerServerEvent('Housing:s:DeletePropertyFurniture', propertyId, id)
+end
+
+RegisterNetEvent('Housing:c:RemoveFurnitureInCurrentProperty', function (id)
+    RemoveFurniture(id)
+end)

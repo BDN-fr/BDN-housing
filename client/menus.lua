@@ -20,7 +20,7 @@ end
 RegisterCommand('housing-job-menu', function ()
     OpenJobMenu()
 end, false)
-RegisterKeyMapping('housing-job-menu', L('JobMenuTitle'), 'keyboard', 'F6')
+RegisterKeyMapping('housing-job-menu', L('JobMenuTitle'), 'keyboard', Config.Job.menuKey)
 
 lib.registerContext({
     id = 'propertyMenu',
@@ -37,6 +37,12 @@ lib.registerContext({
             title = L('ToggleLock'),
             onSelect = function ()
                 TogglePropertyLock(CurrentPropertyId)
+            end
+        },
+        {
+            title = L('GetKey'),
+            onSelect = function ()
+                TriggerServerEvent('Housing:s:giveKey', CurrentPropertyId)
             end
         },
         {
@@ -60,7 +66,12 @@ lib.registerMenu({
     title = L('FurnitureMenuTitle'),
     options = {
         {
-            label = L('PlacedFurnitureList'),
+            label = L('PlacedFurnitures'),
+            args = {
+                func = function (selected, scrollIndex, args)
+                    OpenPlacedFurnituresMenu()
+                end
+            }
         },
         {
             label = L('PreviewFurnitures'),
@@ -102,15 +113,14 @@ lib.registerMenu({
                     WaitInput(L('PreviewValidationText'), {51, 73}, function (key)
                         StopPreview()
                         isPreviewActive = false
-                        if key == 51 then
-                            PlaceFurnitureInProperty(CurrentPropertyId, input[1])
+                        if key == 73 then
+                            return
                         end
                     end)
-                else
-                    PlaceFurnitureInProperty(CurrentPropertyId, input[1])
                 end
+                PlaceFurniture(input[1])
             else
-                Config.Notify(L('InvalidModel'))
+                Config.Notify(L('InvalidModel'), 'error')
                 if isPreviewActive then
                     StopPreview()
                 end
@@ -118,8 +128,67 @@ lib.registerMenu({
             OpenFurnitureMenu()
         end
     end
+    if args?.func then
+        args.func(selected, scrollIndex, args)
+    end
 end)
 
 function OpenFurnitureMenu()
+    if not CurrentPropertyId then
+        Config.Notify(L('YouNeedToBeInside'), 'error')
+        return
+    end
+    if lib.getOpenMenu() then return end
     lib.showMenu('furnitureMenu')
+end
+RegisterCommand('housing-furniture-menu', function ()
+    OpenFurnitureMenu()
+end, false)
+RegisterKeyMapping('housing-furniture-menu', L('FurnitureMenuTitle'), 'keyboard', Config.furnitureMenuKey)
+
+local options, currentEntity
+lib.registerMenu({
+    id = 'placedFurnituresMenu',
+    title = L('PlacedFurnitures'),
+    options = {},
+    canClose = true,
+    onClose = function (keyPressed)
+        if currentEntity then
+            SetEntityDrawOutline(currentEntity, false)
+        end
+        OpenFurnitureMenu()
+    end,
+    onSelected = function (selected, secondary, args)
+        if currentEntity then
+            SetEntityDrawOutline(currentEntity, false)
+        end
+        currentEntity = args.entity
+        SetEntityDrawOutline(currentEntity, true)
+    end
+}, function(selected, scrollIndex, args)
+    SetEntityDrawOutline(args.entity, false)
+    DeleteFurniture(CurrentPropertyId, args.id)
+    if scrollIndex == 2 then
+        PlaceFurniture(args.model)
+    end
+    OpenPlacedFurnituresMenu()
+end)
+
+function OpenPlacedFurnituresMenu()
+    if lib.getOpenMenu() then return end
+    options, currentEntity = {}, nil
+
+    for k, v in pairs(CurrentPropertyFurnitures) do
+        table.insert(options, {
+            label = Config.PropsNames[v.model] or v.model,
+            values = {L('Delete'), L('ChangePos')},
+            args = {
+                id = k,
+                model = v.model,
+                entity = v.obj
+            },
+        })
+    end
+    lib.setMenuOptions('placedFurnituresMenu', options)
+    lib.showMenu('placedFurnituresMenu')
 end

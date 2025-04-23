@@ -30,12 +30,33 @@ Config.blip = {
     showAtShortRange = true
 }
 
+Config.previewCamOffset = vec3(5,5,5)
+
+Config.Job.menuKey = 'F6'
+
+Config.furnitureMenuKey = 'F4'
+
 Config.PlaceProp = function(model)
-    local prop = SpawnProp(model, GetEntityCoords(PlayerPedId()), false)
-    return exports['object_gizmo']:useGizmo(prop)
+    local prop = SpawnProp(model, GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 3, false)
+    local data = exports['object_gizmo']:useGizmo(prop)
+    data.coords = data.position
+    DeleteObject(prop)
+    return data
+    --[[
+        data: {
+            coords: {x:number,y:number,z:number}
+            rotation: {x:number,y:number,z:number}
+        }
+    ]]
 end
 
-Config.previewCamOffset = vec3(5,5,5)
+Config.selectedFurnitureOutline = {
+    red = 255,
+    green = 0,
+    blue = 0,
+    alpha = 150,
+    type = 1 -- https://docs.fivem.net/natives/?_0x5261A01A
+}
 
 ---@diagnostic disable-next-line: duplicate-set-field
 Config.Notify = function (message, type)
