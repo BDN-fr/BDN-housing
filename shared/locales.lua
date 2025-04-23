@@ -34,6 +34,16 @@ Locales = {
         NoFurnitures = 'Il n\'y a aucun meuble',
         Ringed = 'Quelqu\'un sonne à la porte',
         YouRinged = 'Vous avez sonné',
+        Separator = '----------------------------------------------------------------------------',
+        Layouts = 'Décorations',
+        LayoutSaved = 'La décoration actuelle a été sauvegardée',
+        SaveLayout = 'Sauvegarder la décoration actuelle',
+        Load = 'Charger',
+        LoadWaring ='⚠️ Remplace la décoration actuelle',
+        LoadLayout = 'Charger une décoration',
+        LayoutName = 'Nom de la décoration',
+        NoLayouts = 'Vous n\'avez pas de décoration enregistrée',
+        NotSameInterior = 'Votre décoration est faite pour un autre type d\'interrieur',
     }
 }
 

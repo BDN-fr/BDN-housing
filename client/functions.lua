@@ -98,10 +98,8 @@ function RemoveFurniture(id)
 end
 
 function RemoveFurnitures(furnitures)
-    for i, v in ipairs(furnitures) do
-        if v then
-            RemoveFurniture(i)
-        end
+    for id, v in pairs(furnitures) do
+        RemoveFurniture(id)
     end
 end
 
@@ -143,8 +141,8 @@ function PreviewProp(model)
     -- local camCoords = propCoords + size*1.5
     -- SetCamCoord(cam, camCoords.x, camCoords.y, camCoords.z)
     -- PointCamAtCoord(cam, propCoords.x, propCoords.y, propCoords.z+size.z/2)
-    local propCoords = GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 3
-    prop = SpawnProp(model, propCoords) -- Remvove this line if you bring back the cam in the sky
+    local propCoords = GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 1.5
+    prop = SpawnProp(model, propCoords, false) -- Remvove this line if you bring back the cam in the sky
     local currentProp = prop
     CreateThread(function (threadId)
         while prop == currentProp do
@@ -187,3 +185,31 @@ end
 RegisterNetEvent('Housing:c:RemoveFurnitureInCurrentProperty', function (id)
     RemoveFurniture(id)
 end)
+
+function SavePropertyLayout()
+    local input = lib.inputDialog(L('SaveLayout'), {
+        {type = 'input', label = L('LayoutName'), required = true}
+    })
+    if not input then return end
+    TriggerServerEvent('Housing:s:SavePropertyLayout', CurrentPropertyId, input[1])
+end
+
+function LoadPropertyLayout(layoutId)
+    -- local layouts = lib.callback.await('Housing:s:GetPlayerLayouts', 1000)
+    -- if #layouts < 1 then Config.Notify(L('NoLayouts'), 'error') return end
+    -- local options = {}
+    -- for i, v in ipairs(layouts) do
+    --     if v.shell == Properties[CurrentPropertyId].shell then
+    --         table.insert(options, {
+    --             value = v.id,
+    --             label = v.name
+    --         })
+    --     end
+    -- end
+    -- local input = lib.inputDialog(L('SaveLayout'), {
+    --     {type = 'select', label = L('LayoutName'), options = options, required = true}
+    -- })
+    -- if not input then return end
+    -- TriggerServerEvent('Housing:s:LoadLayout', CurrentPropertyId, input[1])
+    TriggerServerEvent('Housing:s:LoadLayout', CurrentPropertyId, layoutId)
+end

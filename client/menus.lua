@@ -64,27 +64,10 @@ local isPreviewActive = false
 lib.registerMenu({
     id = 'furnitureMenu',
     title = L('FurnitureMenuTitle'),
-    options = {
-        {
-            label = L('PlacedFurnitures'),
-            args = {
-                action = 'OpenPlacedFurnituresMenu'
-            }
-        },
-        {
-            label = L('PreviewFurnitures'),
-            checked = isPreviewActive
-        },
-        {
-            label = L('PlaceCustomModel'),
-            args = {
-                action = 'askModel'
-            }
-        }
-    },
+    options = {},
     canClose = true,
     onCheck = function (selected, checked, args)
-        if selected == 2 then
+        if args.type == 'preview' then
             isPreviewActive = checked
             -- if checked then
             --     -- StartPreview()
@@ -97,7 +80,7 @@ lib.registerMenu({
         end
     end,
     onClose = function (keyPressed)
-        if isPreviewActive then
+        if isPreviewActive and keyPressed then
             StopPreview()
         end
     end
@@ -130,6 +113,12 @@ lib.registerMenu({
         if args.action == 'OpenPlacedFurnituresMenu' then
             OpenPlacedFurnituresMenu()
         end
+        if args.action == 'OpenCategory' then
+            OpenCategory(args.category)
+        end
+        if args.action == 'OpenLayouts' then
+            LayoutsMenu()
+        end
     end
 end)
 
@@ -139,16 +128,51 @@ function OpenFurnitureMenu()
         return
     end
     if lib.getOpenMenu() then return end
+
     local count = 0
     for k, v in pairs(CurrentPropertyFurnitures) do
         count += 1
     end
-    lib.setMenuOptions('furnitureMenu', {
-        label = L('PlacedFurnitures')..(' | %s/%s'):format(count, Config.maxFurnitures),
-        args = {
-            action = 'OpenPlacedFurnituresMenu'
+    local options = {
+        {
+            label = L('PlacedFurnitures')..(' | %s/%s'):format(count, Config.maxFurnitures),
+            args = {
+                action = 'OpenPlacedFurnituresMenu'
+            }
+        },
+        {
+            label = L('PreviewFurnitures'),
+            checked = isPreviewActive,
+            args = {
+                type = 'preview'
+            }
+        },
+        {
+            label = L('Layouts'),
+            args = {
+                action = 'OpenLayouts'
+            }
+        },
+        {
+            label = L('PlaceCustomModel'),
+            args = {
+                action = 'askModel'
+            }
+        },
+        {
+            label = L('Separator')
         }
-    }, 1)
+    }
+    for k, v in pairs(Config.Props) do
+        table.insert(options, {
+            label = k,
+            args = {
+                action = 'OpenCategory',
+                category = k
+            }
+        })
+    end
+    lib.setMenuOptions('furnitureMenu', options)
     lib.showMenu('furnitureMenu')
 end
 RegisterCommand('housing-furniture-menu', function ()
@@ -156,7 +180,45 @@ RegisterCommand('housing-furniture-menu', function ()
 end, false)
 RegisterKeyMapping('housing-furniture-menu', L('FurnitureMenuTitle'), 'keyboard', Config.furnitureMenuKey)
 
-local options, currentEntity
+lib.registerMenu({
+    id = 'furnitureCategoryMenu',
+    title = L('FurnitureMenuTitle'),
+    options = {},
+    canClose = true,
+    onClose = function (keyPressed)
+        if isPreviewActive then
+            StopPreview()
+        end
+        OpenFurnitureMenu()
+    end,
+    onSelected = function (selected, secondary, args)
+        if isPreviewActive then
+            PreviewProp(args.model)
+        end
+    end
+}, function (selected, scrollIndex, args)
+    if isPreviewActive then
+        isPreviewActive = false
+        StopPreview()
+    end
+    PlaceFurniture(args.model)
+end)
+
+function OpenCategory(category)
+    local options = {}
+    for i, v in ipairs(Config.Props[category]) do
+        table.insert(options, {
+            label = v.label,
+            args = {
+                model = v.model
+            }
+        })
+    end
+    lib.setMenuOptions('furnitureCategoryMenu', options)
+    lib.showMenu('furnitureCategoryMenu')
+end
+
+local currentEntity
 lib.registerMenu({
     id = 'placedFurnituresMenu',
     title = L('PlacedFurnitures'),
@@ -188,7 +250,8 @@ end)
 
 function OpenPlacedFurnituresMenu()
     if lib.getOpenMenu() then return end
-    options, currentEntity = {}, nil
+    local options = {}
+    currentEntity = nil
 
     for k, v in pairs(CurrentPropertyFurnitures) do
         table.insert(options, {
@@ -208,4 +271,55 @@ function OpenPlacedFurnituresMenu()
     end
     lib.setMenuOptions('placedFurnituresMenu', options)
     lib.showMenu('placedFurnituresMenu')
+end
+
+lib.registerMenu({
+    id = 'layouts',
+    title = L('Layouts'),
+    options = {},
+    canClose = true,
+    onClose = function (keyPressed)
+        if keyPressed then
+            OpenFurnitureMenu()
+        end
+    end
+}, function (selected, scrollIndex, args)
+    if args?.action == 'saveLayout' then
+        SavePropertyLayout()
+    else
+        if scrollIndex == 1 then
+            LoadPropertyLayout(args.id)
+        elseif scrollIndex == 2 then
+            lib.callback.await('Housing:s:DeleteLayout', 1000, args.id)
+            LayoutsMenu()
+        end
+    end
+end)
+
+function LayoutsMenu()
+    local options = {
+        {
+            label = L('SaveLayout'),
+            args = {
+                action = 'saveLayout'
+            }
+        }
+    }
+    local layouts = lib.callback.await('Housing:s:GetPlayerLayouts', 1000)
+    for i, v in ipairs(layouts) do
+        if v.shell == Properties[CurrentPropertyId].shell then
+            table.insert(options, {
+                label = v.name,
+                values = {
+                    {label = L('Load'), description = L('LoadWaring')},
+                    {label = L('Delete')}
+                },
+                args = {
+                    id = v.id
+                }
+            })
+        end
+    end
+    lib.setMenuOptions('layouts', options)
+    lib.showMenu('layouts')
 end

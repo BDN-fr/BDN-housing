@@ -138,10 +138,78 @@ lib.callback.register('Housing:s:DeletePropertyFurniture', function (source, pro
     DeleteFurniture(propertyId, furnitureId)
 end)
 
+function ClearPropertyFurnitures(propertyId)
+    local furnitures = GetPropertyFurnitures(propertyId)
+    for i, v in ipairs(furnitures) do
+        DeleteFurniture(propertyId, v.id)
+    end
+end
+
 RegisterNetEvent('Housing:s:RingProperty', function (propertyId)
     for playerId, pId in pairs(PlayersInsideProperties) do
         if pId == propertyId then
             Config.Notify(playerId, L('Ringed'), 'inform')
         end
     end
+end)
+
+RegisterNetEvent('Housing:s:SavePropertyLayout', function (propertyId, name)
+    local source = source
+    if not DoesPlayerHavePropertyKey(propertyId, source) then return end
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return end
+    local identifier = xPlayer.getIdentifier()
+    local shell = Properties[propertyId].shell
+    local furnitures = GetPropertyFurnitures(propertyId)
+    local furnitures2 = {}
+    for i, v in ipairs(furnitures) do
+        table.insert(furnitures2, {c = v.coords, r = v.rotation, m = v.model})
+    end
+    MySQL.insert.await('INSERT INTO `properties_layouts` (identifier, shell, name, furnitures) VALUES (?,?,?,?)', {
+        identifier, shell, name, json.encode(furnitures2)
+    })
+    Config.Notify(source, L('LayoutSaved'), 'success')
+end)
+
+RegisterNetEvent('Housing:s:LoadLayout', function (propertyId, layoutId)
+    local source = source
+    if not DoesPlayerHavePropertyKey(propertyId, source) then return end
+    local layout = MySQL.query.await('SELECT * FROM `properties_layouts` WHERE id = ? LIMIT 1', {
+        layoutId
+    })[1]
+    if not (layout.shell == Properties[propertyId].shell) then Config.Notify(source, L('NotSameInterior'), 'error') return end
+    ClearPropertyFurnitures(propertyId)
+    for i, v in ipairs(json.decode(layout.furnitures)) do
+        local furniture = {coords = v.c, rotation = v.r, model = v.m}
+        AddPropertyFurniture(propertyId, furniture)
+    end
+end)
+
+function GetPlayerLayouts(playerId)
+    local xPlayer = ESX.GetPlayerFromId(playerId)
+    return MySQL.query.await('SELECT id, name, shell FROM `properties_layouts` WHERE identifier = ?', {
+        xPlayer.getIdentifier()
+    })
+end
+
+lib.callback.register('Housing:s:GetPlayerLayouts', function (source)
+    return GetPlayerLayouts(source)
+end)
+
+function DeletePlayerLayout(playerId, layoutId)
+    local xPlayer = ESX.GetPlayerFromId(playerId)
+    if xPlayer then
+        local identifier = xPlayer.getIdentifier()
+        MySQL.rawExecute.await('DELETE FROM `properties_layouts` WHERE id = ? AND identifier = ?', {
+            layoutId, identifier
+        })
+    else
+        MySQL.rawExecute.await('DELETE FROM `properties_layouts` WHERE id = ?', {
+            layoutId
+        })
+    end
+end
+
+lib.callback.register('Housing:s:DeleteLayout', function (source, layoutId)
+    DeletePlayerLayout(source, layoutId)
 end)

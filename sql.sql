@@ -13,3 +13,12 @@ CREATE TABLE IF NOT EXISTS `properties_furnitures` (
 	`rotation` TEXT(100) NOT NULL,
 	PRIMARY KEY (`id`)
 );
+
+CREATE TABLE IF NOT EXISTS `properties_layouts` (
+	`id` INT(20) AUTO_INCREMENT,
+	`identifier` VARCHAR(80) NOT NULL,
+	`shell` TEXT(100) NOT NULL,
+	`name` TEXT NOT NULL,
+	`furnitures` MEDIUMTEXT NOT NULL DEFAULT '{}',
+	PRIMARY KEY (`id`)
+);
