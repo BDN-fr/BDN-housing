@@ -9,7 +9,7 @@ Config.Shells = {
 
 if IsDuplicityVersion() then return end
 for model, v in pairs(Config.Shells) do
-    if not IsModelValid(v.model) then
+    if not IsModelValid(model) then
         Config.Shells[model] = nil
         lib.print.warn(('Shell model %s is invalid, it got removed from the shell list. To remove this message, remove the model from the shells'):format(model))
     end
