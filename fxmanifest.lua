@@ -3,13 +3,13 @@
 --     /____\   | |  | | | |  | | | |  | |  \    \   |  |   | \  \ | | |____ 
 --     |_   |   | |‾‾| | | \__/ | | \__/ |  /‾‾‾  | _|  |_  | |\   | | |__  |
 --     |_|__|   |_|  |_|  \____/   \____/   \____/ |______| |_| \__|  \____/ 
--- By BDN_fr - https://bdn-fr.xyz/ | For Olympe WL - https://discord.gg/fH8bSDBFvK
+-- By BDN_fr - https://bdn-fr.xyz/ | For Odyssée WL - https://discord.gg/fH8bSDBFvK
 
 game 'gta5'
 fx_version 'cerulean'
 lua54 'yes'
 
-author 'By BDN_fr for Olympe WL - bdn-fr.xyz'
+author 'By BDN_fr for Odyssée WL - bdn-fr.xyz'
 description 'A FiveM housing script, working with shells'
 version '1.0.0'
 

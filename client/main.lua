@@ -3,14 +3,14 @@
 --     /____\   | |  | | | |  | | | |  | |  \    \   |  |   | \  \ | | |____ 
 --     |_   |   | |‾‾| | | \__/ | | \__/ |  /‾‾‾  | _|  |_  | |\   | | |__  |
 --     |_|__|   |_|  |_|  \____/   \____/   \____/ |______| |_| \__|  \____/ 
--- By BDN_fr - https://bdn-fr.xyz/ | For Olympe WL - https://discord.gg/fH8bSDBFvK
+-- By BDN_fr - https://bdn-fr.xyz/ | For Odyssée WL - https://discord.gg/fH8bSDBFvK
 
 print(([[
 
     /\     
    /[]\    %s
   /____\   By BDN_fr - https://bdn-fr.xyz/
-  |_   |   For Odysée WL - https://discord.gg/fH8bSDBFvK
+  |_   |   For Odyssée WL - https://discord.gg/fH8bSDBFvK
   |_|__|   
 ]]):format(GetCurrentResourceName()))
 
