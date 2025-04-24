@@ -24,15 +24,14 @@ Config.Props = {
 }
 
 -- Don't touch this
-Config.PropsNames = {}
 if IsDuplicityVersion() then return end
+Config.PropsNames = {}
 for k, c in pairs(Config.Props) do
     for i, v in ipairs(c) do
-        
         if IsModelValid(v.model) then
             Config.PropsNames[v.model] = v.label
         else
-            lib.print.warn(('Model %s is invalid, it didn\'t being added in the menu. To remove this message, remove the model from the props'):format(v.model))
+            lib.print.warn(('Prop model %s is invalid, it didn\'t being added in the menu. To remove this message, remove the model from the props'):format(v.model))
         end
     end
 end
