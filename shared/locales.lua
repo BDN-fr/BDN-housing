@@ -8,6 +8,7 @@ Locales = {
         JobMenuTitle = 'Menu Agent immo',
         Property = 'Propriété',
         PropertyEnterText = '[E] - Entrer  \n[G] - Sonner  \n[H] - Vérouiller / Dévérouiller',
+        PropertyEnterTextJob = '  \n[U] - Gérer la propriété (métier)',
         OpenMenu = 'Ouvrir le menu',
         PropertyMenuTitle = 'Menu de la propriété',
         Exit = 'Sortir',
@@ -29,6 +30,7 @@ Locales = {
         Delete = 'Supprimer',
         Deleted = 'Supprimé',
         ChangePos = 'Changer la position',
+        Duplicate = 'Dupliquer',
         GetKey = 'Récupérer une clé',
         CantGetKey = 'Vous devez avoir une clé de la propriété pour récupérer une autre clé',
         NoFurnitures = 'Il n\'y a aucun meuble',
@@ -44,6 +46,10 @@ Locales = {
         LayoutName = 'Nom de la décoration',
         NoLayouts = 'Vous n\'avez pas de décoration enregistrée',
         NotSameInterior = 'Votre décoration est faite pour un autre type d\'interrieur',
+        Storage = 'Stockage',
+        PlaceStorage = 'Placer le stockage',
+        OpenStorage = 'Ouvrir le stockage',
+        ChangeKeyCode = 'Changer la serrure'
     }
 }
 

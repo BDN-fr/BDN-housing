@@ -119,6 +119,12 @@ lib.registerMenu({
         if args.action == 'OpenLayouts' then
             LayoutsMenu()
         end
+        if args.action == ('placeStorage') then
+            WaitInput('[E] : '..L('PlaceStorage'), {51}, function (key)
+                local coords = GetEntityCoords(PlayerPedId())
+                TriggerServerEvent('Housing:s:PlacePropertyStorage', CurrentPropertyId, coords - CurrentPropertyCoords)
+            end)
+        end
     end
 end)
 
@@ -128,6 +134,8 @@ function OpenFurnitureMenu()
         return
     end
     if lib.getOpenMenu() then return end
+
+    if not lib.callback.await('Housing:s:DoesIHavePropertyKey', 1000, CurrentPropertyId) then Config.Notify(L('DontHaveKey'), 'error') return end
 
     local count = 0
     for k, v in pairs(CurrentPropertyFurnitures) do
@@ -141,16 +149,25 @@ function OpenFurnitureMenu()
             }
         },
         {
-            label = L('PreviewFurnitures'),
-            checked = isPreviewActive,
+            label = L('PlaceStorage'),
             args = {
-                type = 'preview'
+                action = 'placeStorage'
             }
+        },
+        {
+            label = L('Separator')
         },
         {
             label = L('Layouts'),
             args = {
                 action = 'OpenLayouts'
+            }
+        },
+        {
+            label = L('PreviewFurnitures'),
+            checked = isPreviewActive,
+            args = {
+                type = 'preview'
             }
         },
         {
@@ -241,8 +258,10 @@ lib.registerMenu({
 }, function(selected, scrollIndex, args)
     if not args.entity then return end
     SetEntityDrawOutline(args.entity, false)
-    DeleteFurniture(CurrentPropertyId, args.id)
-    if scrollIndex == 2 then
+    if not (scrollIndex == 3) then
+        DeleteFurniture(CurrentPropertyId, args.id)
+    end
+    if not (scrollIndex == 1) then
         PlaceFurniture(args.model)
     end
     OpenPlacedFurnituresMenu()
@@ -256,7 +275,7 @@ function OpenPlacedFurnituresMenu()
     for k, v in pairs(CurrentPropertyFurnitures) do
         table.insert(options, {
             label = Config.PropsNames[v.model] or v.model,
-            values = {L('Delete'), L('ChangePos')},
+            values = {L('Delete'), L('ChangePos'), L('Duplicate')},
             args = {
                 id = k,
                 model = v.model,
@@ -322,4 +341,30 @@ function LayoutsMenu()
     end
     lib.setMenuOptions('layouts', options)
     lib.showMenu('layouts')
+end
+
+local menuPropertyId
+lib.registerContext({
+    id = 'propertyJobMenu',
+    title = L('Property'),
+    canClose = true,
+    options = {
+        {
+            title = L('Delete'),
+            onSelect = function ()
+                TriggerServerEvent('Housing:s:DeleteProperty', menuPropertyId)
+            end
+        },
+        {
+            title = L('ChangeKeyCode'),
+            onSelect = function ()
+                TriggerServerEvent('Housing:s:ChangeKeyCode', menuPropertyId)
+            end
+        }
+    }
+})
+
+function OpenPropertyJobMenu(propertyId)
+    menuPropertyId = propertyId
+    lib.showContext('propertyJobMenu')
 end

@@ -10,7 +10,7 @@ print(([[
     /\     
    /[]\    %s
   /____\   By BDN_fr - https://bdn-fr.xyz/
-  |_   |   For Omlympe WL - https://discord.gg/fH8bSDBFvK
+  |_   |   For Odysée WL - https://discord.gg/fH8bSDBFvK
   |_|__|   
 ]]):format(GetCurrentResourceName()))
 
@@ -32,7 +32,12 @@ MySQL.query('SELECT * FROM `properties`', {}, function (res)
     for i, v in ipairs(res) do
         v.enter_coords = json.decode(v.enter_coords)
         v.enter_coords = vec3(v.enter_coords.x, v.enter_coords.y, v.enter_coords.z)
+        if v.storage_coords then
+            v.storage_coords = json.decode(v.storage_coords)
+            v.storage_coords = vec3(v.storage_coords.x, v.storage_coords.y, v.storage_coords.z)
+        end
         Properties[v.id] = v
+        exports[Config.ox_inventory]:RegisterStash('property'..v.id, L('Storage'), Config.Storage.slots, Config.Storage.weight)
     end
 end)
 PropertiesState = {}

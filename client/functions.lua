@@ -108,7 +108,7 @@ RegisterNetEvent('Housing:c:AddProperty', function (data)
 end)
 
 RegisterNetEvent('Housing:c:RemoveProperty', function (id)
-    table.remove(Properties, id)
+    Properties[id] = nil
 end)
 
 
@@ -195,21 +195,13 @@ function SavePropertyLayout()
 end
 
 function LoadPropertyLayout(layoutId)
-    -- local layouts = lib.callback.await('Housing:s:GetPlayerLayouts', 1000)
-    -- if #layouts < 1 then Config.Notify(L('NoLayouts'), 'error') return end
-    -- local options = {}
-    -- for i, v in ipairs(layouts) do
-    --     if v.shell == Properties[CurrentPropertyId].shell then
-    --         table.insert(options, {
-    --             value = v.id,
-    --             label = v.name
-    --         })
-    --     end
-    -- end
-    -- local input = lib.inputDialog(L('SaveLayout'), {
-    --     {type = 'select', label = L('LayoutName'), options = options, required = true}
-    -- })
-    -- if not input then return end
-    -- TriggerServerEvent('Housing:s:LoadLayout', CurrentPropertyId, input[1])
     TriggerServerEvent('Housing:s:LoadLayout', CurrentPropertyId, layoutId)
 end
+
+function OpenStorage(propertyId)
+    exports[Config.ox_inventory]:openInventory('stash', 'property'..propertyId)
+end
+
+RegisterNetEvent('Housing:c:UpdateStorageCoords', function (propertyId, coords)
+    Properties[propertyId].storage_coords = coords
+end)

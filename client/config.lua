@@ -34,7 +34,23 @@ Config.previewCamOffset = vec3(5,5,5)
 
 Config.Job.menuKey = 'F6'
 
-Config.furnitureMenuKey = 'F4'
+Config.furnitureMenuKey = 'F1'
+
+Config.onPropertyEnter = function (propertyId)
+    -- Désactiver la météo et mettre le jour
+    CreateThread(function (threadId)
+        while CurrentPropertyId == propertyId do
+            SetWeatherTypeNow('CLEAR')
+            SetClockTime(12,00,00)
+            Wait(15000)
+        end
+    end)
+end
+
+Config.onPropertyExit = function (propertyId)
+    -- Réactiver la météo et syncroniser la bonne heure
+    TriggerServerEvent('MeteoNext:requestSync')
+end
 
 Config.PlaceProp = function(model)
     local prop = SpawnProp(model, GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 3, false)
@@ -49,14 +65,6 @@ Config.PlaceProp = function(model)
         }
     ]]
 end
-
-Config.selectedFurnitureOutline = {
-    red = 255,
-    green = 0,
-    blue = 0,
-    alpha = 150,
-    type = 1 -- https://docs.fivem.net/natives/?_0x5261A01A
-}
 
 ---@diagnostic disable-next-line: duplicate-set-field
 Config.Notify = function (message, type)

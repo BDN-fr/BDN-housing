@@ -10,7 +10,7 @@ print(([[
     /\     
    /[]\    %s
   /____\   By BDN_fr - https://bdn-fr.xyz/
-  |_   |   For Omlympe WL - https://discord.gg/fH8bSDBFvK
+  |_   |   For Odysée WL - https://discord.gg/fH8bSDBFvK
   |_|__|   
 ]]):format(GetCurrentResourceName()))
 
@@ -25,6 +25,8 @@ end)
 
 RegisterNetEvent('esx:playerLoaded', function(xPlayer, isNew, skin)
     ESX.PlayerData = xPlayer
+    ESX.PlayerData.job = xPlayer.job
+    ESX.PlayerData.job.name = xPlayer.job.name
     -- When changing character
     ---@diagnostic disable-next-line: param-type-mismatch
     DeleteObject(CurrentPropertyObj)
@@ -65,6 +67,9 @@ end)
 
 CreateThread(function (threadId)
     local uiText = L('PropertyEnterText')
+    if ESX.PlayerData.job.name == Config.Job.name then
+        uiText = uiText..L('PropertyEnterTextJob')
+    end
     local state
     local stateText = ''
     local nearestCoords, nearestId
@@ -80,12 +85,14 @@ CreateThread(function (threadId)
     while true do
         local nearestDist = math.maxinteger
         for k,v in pairs(Properties) do
-            local pos = GetEntityCoords(PlayerPedId())
-            local dist = #(v.enter_coords - pos)
-            if dist < nearestDist then
-                nearestDist = dist
-                nearestCoords = v.enter_coords
-                nearestId = k
+            if v then
+                local pos = GetEntityCoords(PlayerPedId())
+                local dist = #(v.enter_coords - pos)
+                if dist < nearestDist then
+                    nearestDist = dist
+                    nearestCoords = v.enter_coords
+                    nearestId = k
+                end
             end
         end
         local waitTime = nearestDist/3
@@ -107,6 +114,8 @@ CreateThread(function (threadId)
             if IsControlJustReleased(0, 51) then
                 if state then
                     EnterProperty(nearestId)
+                elseif lib.callback.await('Housing:s:DoesIHavePropertyKey', 1000, nearestId) then
+                    EnterProperty(nearestId)
                 else
                     Config.Notify(L('LockedProperty'), 'error')
                 end
@@ -119,6 +128,12 @@ CreateThread(function (threadId)
             if IsControlJustReleased(0, 74) then
                 TogglePropertyLock(nearestId)
             end
+
+            if ESX.PlayerData.job.name == Config.Job.name then
+                if IsControlJustReleased(0, 303) then
+                    OpenPropertyJobMenu(nearestId)
+                end
+            end
         else
             local isOpen, currentText = lib.isTextUIOpen()
             if isOpen and currentText == uiText then
@@ -130,6 +145,9 @@ CreateThread(function (threadId)
 end)
 
 function EnterProperty(propertyId)
+    if Config.onPropertyEnter then
+        Config.onPropertyEnter(propertyId)
+    end
     CreateThread(function (threadId)
         local p = Properties[propertyId]
 
@@ -184,11 +202,46 @@ function EnterProperty(propertyId)
                 lib.hideTextUI()
             end
         end)
+
+        CreateThread(function (threadId)
+            local uiText = '[E]: '..L('OpenStorage')
+            while CurrentPropertyId == propertyId do
+                if Properties[CurrentPropertyId].storage_coords then
+                    DrawConfigMarker(CurrentPropertyCoords + Properties[CurrentPropertyId].storage_coords)
+                    local coords = GetEntityCoords(PlayerPedId())
+                    local dist = #(coords - (CurrentPropertyCoords + Properties[CurrentPropertyId].storage_coords))
+                    if dist < 2 then
+                        if not lib.isTextUIOpen() then
+                            lib.showTextUI(uiText)
+                        end
+
+                        if IsControlJustReleased(0, 51) then
+                            OpenStorage(CurrentPropertyId)
+                        end
+                    else
+                        local isOpen, currentText = lib.isTextUIOpen()
+                        if isOpen and currentText == uiText then
+                            lib.hideTextUI()
+                        end
+                    end
+                    Wait(0)
+                else
+                    Wait(1000)
+                end
+            end
+            local isOpen, currentText = lib.isTextUIOpen()
+            if isOpen and currentText == uiText then
+                lib.hideTextUI()
+            end
+        end)
     end)
 end
 RegisterNetEvent('Housing:c:EnterProperty', EnterProperty)
 
 function ExitProperty()
+    if Config.onPropertyExit then
+        Config.onPropertyExit(propertyId)
+    end
     DoScreenFadeOut(500)
     FreezeEntityPosition(PlayerPedId(), true)
     Wait(500)

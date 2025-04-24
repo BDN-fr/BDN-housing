@@ -1,23 +1,25 @@
 CREATE TABLE IF NOT EXISTS `properties` (
-	`id` INT(20) AUTO_INCREMENT,
-	`shell` TEXT(100) NOT NULL DEFAULT '',
-	`enter_coords` TEXT(100) NOT NULL DEFAULT '',
+	`id` INT AUTO_INCREMENT,
+	`shell` TEXT NOT NULL DEFAULT '',
+	`enter_coords` TEXT NOT NULL DEFAULT '',
+	`storage_coords` TEXT DEFAULT NULL,
+	`key_code` INT NOT NULL,
 	PRIMARY KEY (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `properties_furnitures` (
-	`id` INT(20) AUTO_INCREMENT,
-	`property_id` INT(20) NOT NULL,
-	`model` TEXT(100) NOT NULL,
-	`coords` TEXT(100) NOT NULL,
-	`rotation` TEXT(100) NOT NULL,
+	`id` INT AUTO_INCREMENT,
+	`property_id` INT NOT NULL,
+	`model` TEXT NOT NULL,
+	`coords` TEXT NOT NULL,
+	`rotation` TEXT NOT NULL,
 	PRIMARY KEY (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `properties_layouts` (
-	`id` INT(20) AUTO_INCREMENT,
+	`id` INT AUTO_INCREMENT,
 	`identifier` VARCHAR(80) NOT NULL,
-	`shell` TEXT(100) NOT NULL,
+	`shell` TEXT NOT NULL,
 	`name` TEXT NOT NULL,
 	`furnitures` MEDIUMTEXT NOT NULL DEFAULT '{}',
 	PRIMARY KEY (`id`)

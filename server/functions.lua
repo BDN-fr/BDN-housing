@@ -1,8 +1,10 @@
 function CreateProperty(data)
-    local id = MySQL.insert.await('INSERT INTO `properties` (shell, enter_coords) VALUES (?, ?)', {
-        data.shell, json.encode(data.enterCoords)
+    local code = math.random(0,1000)
+    local id = MySQL.insert.await('INSERT INTO `properties` (shell, enter_coords, key_code) VALUES (?, ?, ?)', {
+        data.shell, json.encode(data.enterCoords), code
     })
-    Properties[id] = {shell = data.shell, enter_coords = data.enterCoords}
+    Properties[id] = {shell = data.shell, enter_coords = data.enterCoords, key_code = code}
+    exports[Config.ox_inventory]:RegisterStash('property'..id, L('Storage'), Config.Storage.slots, Config.Storage.weight)
     TriggerClientEvent('Housing:c:AddProperty', -1, {id, Properties[id]})
     return id
 end
@@ -14,7 +16,8 @@ function AddKey(propertyId, playerId)
         return false
     end
     exports[Config.ox_inventory]:AddItem(playerId, 'property_key', 1, {
-        propertyId = propertyId
+        propertyId = propertyId,
+        code = Properties[propertyId].key_code
     })
 end
 
@@ -36,7 +39,7 @@ lib.callback.register('Housing:s:IsPropertyLocked', function (source, propertyId
 end)
 
 function DoesPlayerHavePropertyKey(propertyId, playerId)
-    return exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', {propertyId = propertyId}, true) > 0
+    return exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', {propertyId = propertyId, code = Properties[propertyId].key_code}, true) > 0
 end
 
 lib.callback.register('Housing:s:DoesIHavePropertyKey', function (source, propertyId)
@@ -212,4 +215,43 @@ end
 
 lib.callback.register('Housing:s:DeleteLayout', function (source, layoutId)
     DeletePlayerLayout(source, layoutId)
+end)
+
+RegisterNetEvent('Housing:s:PlacePropertyStorage', function (propertyId, coords)
+    if not DoesPlayerHavePropertyKey(propertyId, source) then return end
+    MySQL.update.await('UPDATE `properties` SET storage_coords = ? WHERE id = ?', {
+        json.encode(coords), propertyId
+    })
+    Properties[propertyId].storage_coords = coords
+    TriggerClientEvent('Housing:c:UpdateStorageCoords', -1, propertyId, coords)
+end)
+
+RegisterNetEvent('Housing:s:DeleteProperty', function (propertyId)
+    local source = source
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer?.job.name == Config.Job.name then return end
+    MySQL.rawExecute.await('DELETE FROM `properties` WHERE id = ?', {
+        propertyId
+    })
+    MySQL.rawExecute('DELETE FROM `properties_furnitures` WHERE property_id = ?', {
+        propertyId
+    })
+    Properties[propertyId] = nil
+    TriggerClientEvent('Housing:c:RemoveProperty', -1, propertyId)
+end)
+
+RegisterNetEvent('Housing:s:ChangeKeyCode', function (propertyId)
+    local source = source
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer?.job.name == Config.Job.name then return end
+    if not exports[Config.ox_inventory]:CanCarryItem(source, 'property_key', 1) then
+        Config.Notify(source, L('CantCarryKey'), 'error')
+        return
+    end
+    local newCode = math.random(0, 1000)
+    Properties[propertyId].key_code = newCode
+    MySQL.update('UPDATE `properties` SET key_code = ? WHERE id = ?', {
+        newCode, propertyId
+    })
+    AddKey(propertyId, source)
 end)
