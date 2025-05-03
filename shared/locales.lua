@@ -49,7 +49,9 @@ Locales = {
         Storage = 'Stockage',
         PlaceStorage = 'Placer le stockage',
         OpenStorage = 'Ouvrir le stockage',
-        ChangeKeyCode = 'Changer la serrure'
+        ChangeKeyCode = 'Changer la serrure',
+        PreviewShells = 'Prévisualiser les intérieurs',
+        QuitShellPreviewMessage = '[E] - Quitter la prévisualisation',
     }
 }
 

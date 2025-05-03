@@ -37,7 +37,7 @@ end
 function CreateProperty()
     local isCreatingProperty = true
     local enterCoords
-    WaitInput('[E] : '..L('PlaceEnter'), {51}, function (key)
+    WaitInput('[E] - '..L('PlaceEnter'), {51}, function (key)
         enterCoords = GetEntityCoords(PlayerPedId())
         CreateThread(function ()
             while isCreatingProperty do
@@ -108,6 +108,7 @@ RegisterNetEvent('Housing:c:AddProperty', function (data)
 end)
 
 RegisterNetEvent('Housing:c:RemoveProperty', function (id)
+    if Properties[id].blip then RemoveBlip(Properties[id].blip) end
     Properties[id] = nil
 end)
 

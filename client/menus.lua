@@ -8,6 +8,20 @@ lib.registerContext({
             onSelect = function ()
                 CreateProperty()
             end
+        },
+        {
+            title = L('PreviewShells'),
+            onSelect = function ()
+                local shellsOptions = {}
+                for k,v in pairs(Config.Shells) do
+                    table.insert(shellsOptions, {value = k, label = v.label})
+                end
+                local input = lib.inputDialog(L('PreviewShells'), {
+                    {type = 'select', label = L('InteriorType'), options = shellsOptions, required = true, searchable = true}
+                })
+                if not input then return end
+                EnterProperty('preview', input[1])
+            end
         }
     }
 })

@@ -66,10 +66,7 @@ RegisterNetEvent('Housing:c:SubToProperty', function (propertyId, state)
 end)
 
 CreateThread(function (threadId)
-    local uiText = L('PropertyEnterText')
-    if ESX.PlayerData.job.name == Config.Job.name then
-        uiText = uiText..L('PropertyEnterTextJob')
-    end
+    local uiText
     local state
     local stateText = ''
     local nearestCoords, nearestId
@@ -83,6 +80,11 @@ CreateThread(function (threadId)
         Wait(1)
     end
     while true do
+        if ESX?.PlayerData?.job?.name == Config.Job.name then
+            uiText = L('PropertyEnterText')..L('PropertyEnterTextJob')
+        else
+            uiText = L('PropertyEnterText')
+        end
         local nearestDist = math.maxinteger
         for k,v in pairs(Properties) do
             if v then
@@ -144,7 +146,11 @@ CreateThread(function (threadId)
     end
 end)
 
-function EnterProperty(propertyId)
+function EnterProperty(propertyId, shellType)
+    local preview = propertyId == 'preview'
+    if preview then
+        Properties[propertyId] = {shell = shellType, enter_coords = GetEntityCoords(PlayerPedId())}
+    end
     if Config.onPropertyEnter then
         Config.onPropertyEnter(propertyId)
     end
@@ -159,8 +165,10 @@ function EnterProperty(propertyId)
         CurrentPropertyCoords = coords
         local doorCoords = coords + Config.Shells[p.shell].door
 
-        -- This is a callback because we need to wait to be in the right bucket
-        lib.callback.await('Housing:s:EnterProperty', 1000, propertyId)
+        if not preview then
+            -- This is a callback because we need to wait to be in the right bucket
+            lib.callback.await('Housing:s:EnterProperty', 1000, propertyId)
+        end
 
         CurrentPropertyObj = SpawnProp(p.shell, coords)
 
@@ -175,8 +183,15 @@ function EnterProperty(propertyId)
         DoScreenFadeIn(500)
         FreezeEntityPosition(PlayerPedId(), false)
 
+        if preview then
+            WaitInput(L('QuitShellPreviewMessage'), {51}, function (key)
+                ExitProperty()
+            end)
+            return
+        end
+
         CreateThread(function (threadId)
-            local uiText = '[E]: '..L('OpenMenu')
+            local uiText = '[E] - '..L('OpenMenu')
             while CurrentPropertyId == propertyId do
                 DrawConfigMarker(doorCoords)
                 local coords = GetEntityCoords(PlayerPedId())
@@ -204,7 +219,7 @@ function EnterProperty(propertyId)
         end)
 
         CreateThread(function (threadId)
-            local uiText = '[E]: '..L('OpenStorage')
+            local uiText = '[E] - '..L('OpenStorage')
             while CurrentPropertyId == propertyId do
                 if Properties[CurrentPropertyId].storage_coords then
                     DrawConfigMarker(CurrentPropertyCoords + Properties[CurrentPropertyId].storage_coords)
@@ -239,8 +254,9 @@ end
 RegisterNetEvent('Housing:c:EnterProperty', EnterProperty)
 
 function ExitProperty()
+    local preview = CurrentPropertyId == 'preview'
     if Config.onPropertyExit then
-        Config.onPropertyExit(propertyId)
+        Config.onPropertyExit(CurrentPropertyId)
     end
     DoScreenFadeOut(500)
     FreezeEntityPosition(PlayerPedId(), true)
@@ -248,10 +264,15 @@ function ExitProperty()
     ---@diagnostic disable-next-line: param-type-mismatch
     DeleteObject(CurrentPropertyObj)
     RemoveFurnitures(CurrentPropertyFurnitures)
-    -- This is a callback because we need to wait to be in the right bucket
-    lib.callback.await('Housing:s:ExitProperty', 1000)
+    if not preview then
+        -- This is a callback because we need to wait to be in the right bucket
+        lib.callback.await('Housing:s:ExitProperty', 1000)
+    end
     ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
     SetEntityCoords(PlayerPedId(), Properties[CurrentPropertyId].enter_coords, false, false, false, false)
+    if preview then
+        Properties[CurrentPropertyId] = nil
+    end
     CurrentPropertyId = nil
     CurrentPropertyObj = nil
     CurrentPropertyCoords = nil
