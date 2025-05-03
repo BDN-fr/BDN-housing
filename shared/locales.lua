@@ -55,6 +55,8 @@ Locales = {
     }
 }
 
+---@return string
 function L(id)
-    return Locales[Config.lang]?[id] or ('Locale '..id..' undefined')
+    if not Locales[Config.lang] then return ('Locale '..Config.lang..' undefined') end
+    return Locales[Config.lang][id] or ('Locale '..id..' undefined')
 end

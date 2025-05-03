@@ -105,6 +105,9 @@ end
 
 RegisterNetEvent('Housing:c:AddProperty', function (data)
     Properties[data[1]] = data[2]
+    if ESX.PlayerData.job.name == Config.Job.name then
+        Properties[data[1]].jobBlip = CreateBlip(data[2].enter_coords, Config.Job.blip)
+    end
 end)
 
 RegisterNetEvent('Housing:c:RemoveProperty', function (id)
@@ -206,3 +209,17 @@ end
 RegisterNetEvent('Housing:c:UpdateStorageCoords', function (propertyId, coords)
     Properties[propertyId].storage_coords = coords
 end)
+
+function CreateBlip(coords, params)
+    local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
+    SetBlipSprite(blip, params.sprite)
+    SetBlipColour(blip, params.color)
+    SetBlipScale(blip, params.scale)
+    SetBlipDisplay(blip, params.display)
+    SetBlipAlpha(blip, params.alpha)
+    SetBlipAsShortRange(blip, params.showAtShortRange)
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentString(L('Property'))
+    EndTextCommandSetBlipName(blip)
+    return blip
+end

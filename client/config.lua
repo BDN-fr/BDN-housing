@@ -30,20 +30,32 @@ Config.blip = {
     showAtShortRange = true
 }
 
-Config.previewCamOffset = vec3(5,5,5)
+-- Config.previewCamOffset = vec3(5,5,5)
 
+Config.Job = Config.Job or {}
 Config.Job.menuKey = 'F6'
+Config.Job.blip = {
+    -- https://docs.fivem.net/docs/game-references/blips/
+    sprite = 40,
+    color = 13,
+    scale = 0.5,
+    display = 2, -- https://docs.fivem.net/natives/?_0x9029B2F3DA924928
+    alpha = 255,
+    showAtShortRange = true
+}
 
 Config.furnitureMenuKey = 'F1'
 
 Config.onPropertyEnter = function (propertyId)
     -- Désactiver la météo et mettre le jour
     CreateThread(function (threadId)
+        SetWeatherOwnedByNetwork(false)
         while CurrentPropertyId == propertyId do
-            SetWeatherTypeNow('CLEAR')
+            SetWeatherTypeNowPersist('CLEAR')
             SetClockTime(12,00,00)
             Wait(15000)
         end
+        SetWeatherOwnedByNetwork(true)
     end)
 end
 

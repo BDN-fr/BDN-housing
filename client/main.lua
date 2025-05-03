@@ -21,12 +21,14 @@ CurrentPropertyFurnitures = {}
 
 RegisterNetEvent('esx:setJob', function(job, lastJob)
     ESX.PlayerData.job = job
+    ShowJobBlips()
 end)
 
 RegisterNetEvent('esx:playerLoaded', function(xPlayer, isNew, skin)
     ESX.PlayerData = xPlayer
     ESX.PlayerData.job = xPlayer.job
     ESX.PlayerData.job.name = xPlayer.job.name
+    ShowJobBlips()
     -- When changing character
     ---@diagnostic disable-next-line: param-type-mismatch
     DeleteObject(CurrentPropertyObj)
@@ -47,23 +49,28 @@ RegisterNetEvent('Housing:c:SubToProperty', function (propertyId, state)
     if not p then print('No property '..propertyId) return end
     if state then
         if not p.blip then
-            local blip = AddBlipForCoord(p.enter_coords.x, p.enter_coords.y, p.enter_coords.z)
-            SetBlipSprite(blip, Config.blip.sprite)
-            SetBlipColour(blip, Config.blip.color)
-            SetBlipScale(blip, Config.blip.scale)
-            SetBlipDisplay(blip, Config.blip.display)
-            SetBlipAlpha(blip, Config.blip.alpha)
-            SetBlipAsShortRange(blip, Config.blip.showAtShortRange)
-            BeginTextCommandSetBlipName("STRING")
-            AddTextComponentString(L('Property'))
-            EndTextCommandSetBlipName(blip)
-            p.blip = blip
+            p.blip = CreateBlip(p.enter_coords, Config.blip)
         end
     else
         RemoveBlip(p.blip)
         p.blip = nil
     end
 end)
+
+function ShowJobBlips()
+    if ESX.PlayerData.job.name == Config.Job.name then
+        for k,v in pairs(Properties) do
+            if not v.jobBlip then
+                v.jobBlip = CreateBlip(v.enter_coords, Config.Job.blip)
+            end
+        end
+    else
+        for k,v in pairs(Properties) do
+            if v.jobBlip then RemoveBlip(v.jobBlip) end
+            v.jobBlip = nil
+        end
+    end
+end
 
 CreateThread(function (threadId)
     local uiText
@@ -90,7 +97,7 @@ CreateThread(function (threadId)
             if v then
                 local pos = GetEntityCoords(PlayerPedId())
                 local dist = #(v.enter_coords - pos)
-                if dist < nearestDist then
+                if dist < nearestDist and k ~= 'preview' then
                     nearestDist = dist
                     nearestCoords = v.enter_coords
                     nearestId = k
@@ -101,45 +108,46 @@ CreateThread(function (threadId)
         if nearestDist < 30 then
             waitTime = 1
             DrawConfigMarker(nearestCoords)
-        end
-        if nearestDist < 2 then
-            if not lib.isTextUIOpen() then
-                lib.callback('Housing:s:IsPropertyLocked', 1000, function (res)
-                    state = res
-                end, nearestId)
-                lib.showTextUI(uiText)
-            end
 
-            stateText = state and '🔓' or '🔒'
-            ESX.Game.Utils.DrawText3D(vec3(nearestCoords.xy, nearestCoords.z+Config.stateOffset), stateText, 1.0, 1)
-
-            if IsControlJustReleased(0, 51) then
-                if state then
-                    EnterProperty(nearestId)
-                elseif lib.callback.await('Housing:s:DoesIHavePropertyKey', 1000, nearestId) then
-                    EnterProperty(nearestId)
-                else
-                    Config.Notify(L('LockedProperty'), 'error')
+            if nearestDist < 2 then
+                if not lib.isTextUIOpen() then
+                    lib.callback('Housing:s:IsPropertyLocked', 1000, function (res)
+                        state = res
+                    end, nearestId)
+                    lib.showTextUI(uiText)
                 end
-            end
 
-            if IsControlJustReleased(0, 47) then
-                RingProperty(nearestId)
-            end
+                stateText = state and '🔓' or '🔒'
+                ESX.Game.Utils.DrawText3D(vec3(nearestCoords.xy, nearestCoords.z+Config.stateOffset), stateText, 1.0, 1)
 
-            if IsControlJustReleased(0, 74) then
-                TogglePropertyLock(nearestId)
-            end
-
-            if ESX.PlayerData.job.name == Config.Job.name then
-                if IsControlJustReleased(0, 303) then
-                    OpenPropertyJobMenu(nearestId)
+                if IsControlJustReleased(0, 51) then
+                    if state then
+                        EnterProperty(nearestId)
+                    elseif lib.callback.await('Housing:s:DoesIHavePropertyKey', 1000, nearestId) then
+                        EnterProperty(nearestId)
+                    else
+                        Config.Notify(L('LockedProperty'), 'error')
+                    end
                 end
-            end
-        else
-            local isOpen, currentText = lib.isTextUIOpen()
-            if isOpen and currentText == uiText then
-                lib.hideTextUI()
+
+                if IsControlJustReleased(0, 47) then
+                    RingProperty(nearestId)
+                end
+
+                if IsControlJustReleased(0, 74) then
+                    TogglePropertyLock(nearestId)
+                end
+
+                if ESX.PlayerData.job.name == Config.Job.name then
+                    if IsControlJustReleased(0, 303) then
+                        OpenPropertyJobMenu(nearestId)
+                    end
+                end
+            else
+                local isOpen, currentText = lib.isTextUIOpen()
+                if isOpen and currentText == uiText then
+                    lib.hideTextUI()
+                end
             end
         end
         Wait(waitTime)

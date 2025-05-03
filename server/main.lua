@@ -83,16 +83,7 @@ RegisterNetEvent('Housing:s:HeySendMePropertiesPlease', function ()
 end)
 
 RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer, isNew)
-    local slots
-    while not slots do
-        slots = exports[Config.ox_inventory]:GetSlotsWithItem(playerId, 'property_key')
-        Wait(0)
-    end
-    for i, v in ipairs(slots) do
-        if v.metadata.propertyId then
-            SubPlayeyToProperty(v.metadata.propertyId, playerId, true)
-        end
-    end
+    SubPlayeyAllInvKeys(playerId, true)
 
     if xPlayer.getMeta('insideProperty') then
         TriggerClientEvent('Housing:c:EnterProperty', playerId, xPlayer.getMeta('insideProperty'))
@@ -100,13 +91,7 @@ RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer, isNew)
 end)
 
 RegisterNetEvent('esx:playerDropped', function(playerId, reason)
-    local slots = exports[Config.ox_inventory]:GetSlotsWithItem(playerId, 'property_key')
-    if not slots then return end
-    for i, v in ipairs(slots) do
-        if v.metadata.propertyId then
-            SubPlayeyToProperty(v.metadata.propertyId, playerId, false)
-        end
-    end
+    SubPlayeyAllInvKeys(playerId, false)
 end)
 
 RegisterCommand('givekey', function(source, args, rawCommand)
@@ -131,5 +116,6 @@ end, true)
 
 RegisterCommand('setBucket', function(source, args, rawCommand)
     if not args[1] then return end
+    ---@diagnostic disable-next-line: param-type-mismatch
     SetPlayerRoutingBucket(source, tonumber(args[1]))
 end, true)

@@ -73,7 +73,7 @@ lib.callback.register('Housing:s:EnterProperty', function (source, propertyId)
 end)
 
 lib.callback.register('Housing:s:ExitProperty', function (source, clearMeta)
-    clearMeta = not clearMeta == false
+    clearMeta = clearMeta or true
     SetPlayerRoutingBucket(source, Config.defaultRoutingBucket)
     PlayersInsideProperties[source] = nil
     local xPlayer = ESX.GetPlayerFromId(source)
@@ -255,3 +255,17 @@ RegisterNetEvent('Housing:s:ChangeKeyCode', function (propertyId)
     })
     AddKey(propertyId, source)
 end)
+
+function SubPlayeyAllInvKeys(playerId, state)
+    local slots
+    while not slots do
+        slots = exports[Config.ox_inventory]:GetSlotsWithItem(playerId, 'property_key')
+        Wait(1)
+    end
+    for i, v in ipairs(slots) do
+        if v.metadata.propertyId then
+            print('propertyId', v.metadata.propertyId)
+            SubPlayeyToProperty(v.metadata.propertyId, playerId, state)
+        end
+    end
+end
