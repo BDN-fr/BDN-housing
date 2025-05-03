@@ -264,7 +264,6 @@ function SubPlayeyAllInvKeys(playerId, state)
     end
     for i, v in ipairs(slots) do
         if v.metadata.propertyId then
-            print('propertyId', v.metadata.propertyId)
             SubPlayeyToProperty(v.metadata.propertyId, playerId, state)
         end
     end
