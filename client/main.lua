@@ -46,7 +46,6 @@ TriggerServerEvent('Housing:s:HeySendMePropertiesPlease')
 
 RegisterNetEvent('Housing:c:SubToProperty', function (propertyId, state)
     local p = Properties[propertyId]
-    if not p then print('No property '..propertyId) return end
     if state then
         if not p.blip then
             p.blip = CreateBlip(p.enter_coords, Config.blip)
@@ -87,11 +86,6 @@ CreateThread(function (threadId)
         Wait(1)
     end
     while true do
-        if ESX?.PlayerData?.job?.name == Config.Job.name then
-            uiText = L('PropertyEnterText')..L('PropertyEnterTextJob')
-        else
-            uiText = L('PropertyEnterText')
-        end
         local nearestDist = math.maxinteger
         for k,v in pairs(Properties) do
             if v then
@@ -114,6 +108,11 @@ CreateThread(function (threadId)
                     lib.callback('Housing:s:IsPropertyLocked', 1000, function (res)
                         state = res
                     end, nearestId)
+                    if ESX?.PlayerData?.job?.name == Config.Job.name then
+                        uiText = L('PropertyEnterText')..L('PropertyEnterTextJob')
+                    else
+                        uiText = L('PropertyEnterText')
+                    end
                     lib.showTextUI(uiText)
                 end
 
@@ -191,15 +190,11 @@ function EnterProperty(propertyId, shellType)
         DoScreenFadeIn(500)
         FreezeEntityPosition(PlayerPedId(), false)
 
-        if preview then
-            WaitInput(L('QuitShellPreviewMessage'), {51}, function (key)
-                ExitProperty()
-            end)
-            return
-        end
+        if preview then return end
 
         CreateThread(function (threadId)
             local uiText = '[E] - '..L('OpenMenu')
+            lib.hideTextUI()
             while CurrentPropertyId == propertyId do
                 DrawConfigMarker(doorCoords)
                 local coords = GetEntityCoords(PlayerPedId())

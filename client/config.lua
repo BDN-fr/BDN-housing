@@ -78,6 +78,13 @@ Config.PlaceProp = function(model)
     ]]
 end
 
+Config.Garage = {}
+Config.Garage.Activated = true -- Turn on / off the garage creation
+Config.Garage.SlotsOptions = {1,2,3,4,5,6,7,8,10,12,16}
+Config.Garage.Register = function (coords, slotsAmount)
+    print(coords, slotsAmount)
+end
+
 ---@diagnostic disable-next-line: duplicate-set-field
 Config.Notify = function (message, type)
     -- Possible types : 'inform', 'success', 'error', 'warning'

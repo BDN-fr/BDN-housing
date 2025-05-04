@@ -11,7 +11,7 @@ lua54 'yes'
 
 author 'By BDN_fr for Odyssée WL - bdn-fr.xyz'
 description 'A FiveM housing script, working with shells'
-version '1.1.0'
+version '1.2.0'
 
 shared_scripts {
     '@ox_lib/init.lua',

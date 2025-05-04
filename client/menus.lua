@@ -1,29 +1,24 @@
+local options = {
+    {
+        title = L('CreateProperty'),
+        onSelect = function ()
+            CreateProperty()
+        end
+    }
+}
+if Config.Garage.Activated then
+    table.insert(options, {
+        title = L('CreateGarage'),
+        onSelect = function ()
+            CreateGarage()
+        end
+    })
+end
 lib.registerContext({
     id = 'jobMenu',
     title = L('JobMenuTitle'),
     canClose = true,
-    options = {
-        {
-            title = L('CreateProperty'),
-            onSelect = function ()
-                CreateProperty()
-            end
-        },
-        {
-            title = L('PreviewShells'),
-            onSelect = function ()
-                local shellsOptions = {}
-                for k,v in pairs(Config.Shells) do
-                    table.insert(shellsOptions, {value = k, label = v.label})
-                end
-                local input = lib.inputDialog(L('PreviewShells'), {
-                    {type = 'select', label = L('InteriorType'), options = shellsOptions, required = true, searchable = true}
-                })
-                if not input then return end
-                EnterProperty('preview', input[1])
-            end
-        }
-    }
+    options = options
 })
 
 function OpenJobMenu()

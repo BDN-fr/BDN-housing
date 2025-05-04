@@ -47,7 +47,7 @@ function CreateProperty()
         end)
     end)
     local shellsOptions = {}
-    for k,v in pairs(Config.Shells) do
+    for k, v in pairs(Config.Shells) do
         table.insert(shellsOptions, {value = k, label = v.label})
     end
     local input = lib.inputDialog(L('CreateProperty'), {
@@ -57,10 +57,43 @@ function CreateProperty()
         isCreatingProperty = false
         return
     end
-    local data = {}
-    data.shell = input[1]
-    data.enterCoords = enterCoords
-    TriggerServerEvent('Housing:s:CreateProperty', data)
+    EnterProperty('preview', input[1])
+    WaitInput(L('PreviewValidationText'), {51, 73}, function (key)
+        ExitProperty()
+        if key == 51 then
+            local data = {}
+            data.shell = input[1]
+            data.enterCoords = enterCoords
+            TriggerServerEvent('Housing:s:CreateProperty', data)
+        end
+    end)
+    isCreatingProperty = false
+end
+
+function CreateGarage()
+    local isCreatingProperty = true
+    local enterCoords
+    WaitInput('[E] - '..L('PlaceEnter'), {51}, function (key)
+        enterCoords = GetEntityCoords(PlayerPedId())
+        CreateThread(function ()
+            while isCreatingProperty do
+                Wait(0)
+                DrawConfigMarker(enterCoords)
+            end
+        end)
+    end)
+    local options = {}
+    for i, v in ipairs(Config.Garage.SlotsOptions) do
+        table.insert(options, {value = tostring(v), label = tostring(v)})
+    end
+    local input = lib.inputDialog(L('CreateGarage'), {
+        {type = 'select', label = L('SlotAmount'), options = options, required = true, searchable = true}
+    })
+    if not input then
+        isCreatingProperty = false
+        return
+    end
+    Config.Garage.Register(enterCoords, input[1])
     isCreatingProperty = false
 end
 

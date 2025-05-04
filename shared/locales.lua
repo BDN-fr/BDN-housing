@@ -1,8 +1,10 @@
 Locales = {
     fr = {
         CreateProperty = 'Créer une propriété',
+        CreateGarage = 'Créer un garage',
         PlaceEnter = 'Placer l\'entrée',
         InteriorType = 'Type d\'interrieur',
+        SlotAmount = 'Nombre de places',
         CantCarryKey = 'Vous n\'avez pas la place de porter la clé',
         CreationCanceled = 'Création de la propriété annulée',
         JobMenuTitle = 'Menu Agent immo',
