@@ -19,6 +19,8 @@ CurrentPropertyObj = nil
 CurrentPropertyCoords = nil
 CurrentPropertyFurnitures = {}
 
+local exiting
+
 RegisterNetEvent('esx:setJob', function(job, lastJob)
     ESX.PlayerData.job = job
     ShowJobBlips()
@@ -190,6 +192,23 @@ function EnterProperty(propertyId, shellType)
         DoScreenFadeIn(500)
         FreezeEntityPosition(PlayerPedId(), false)
 
+        CreateThread(function (threadId)
+            local maxDims = GetModelDimensions(p.shell)*2
+            print(maxDims)
+            while CurrentPropertyId == propertyId and not exiting do
+                Wait(500)
+                local distVec = coords - GetEntityCoords(PlayerPedId())
+                print(distVec)
+                if
+                    math.abs(distVec.x) > math.abs(maxDims.x) or
+                    math.abs(distVec.y) > math.abs(maxDims.y) or
+                    math.abs(distVec.z) > math.abs(maxDims.z)
+                then
+                    SetEntityCoords(PlayerPedId(), doorCoords.x, doorCoords.y, doorCoords.z, false, false, false, false)
+                end
+            end
+        end)
+
         if preview then return end
 
         CreateThread(function (threadId)
@@ -257,6 +276,7 @@ end
 RegisterNetEvent('Housing:c:EnterProperty', EnterProperty)
 
 function ExitProperty()
+    exiting = true
     local preview = CurrentPropertyId == 'preview'
     if Config.onPropertyExit then
         Config.onPropertyExit(CurrentPropertyId)
@@ -281,6 +301,7 @@ function ExitProperty()
     CurrentPropertyCoords = nil
     FreezeEntityPosition(PlayerPedId(), false)
     DoScreenFadeIn(500)
+    exiting = false
 end
 
 function RingProperty(propertyId)
