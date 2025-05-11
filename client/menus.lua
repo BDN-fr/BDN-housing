@@ -267,11 +267,12 @@ lib.registerMenu({
 }, function(selected, scrollIndex, args)
     if not args.entity then return end
     SetEntityDrawOutline(args.entity, false)
+    local coords = GetEntityCoords(args.entity)
     if not (scrollIndex == 3) then
         DeleteFurniture(CurrentPropertyId, args.id)
     end
     if not (scrollIndex == 1) then
-        PlaceFurniture(args.model, GetEntityCoords(args.entity))
+        PlaceFurniture(args.model, coords)
     end
     OpenPlacedFurnituresMenu()
 end)
