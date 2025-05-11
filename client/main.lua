@@ -194,11 +194,9 @@ function EnterProperty(propertyId, shellType)
 
         CreateThread(function (threadId)
             local maxDims = GetModelDimensions(p.shell)*2
-            print(maxDims)
             while CurrentPropertyId == propertyId and not exiting do
                 Wait(500)
                 local distVec = coords - GetEntityCoords(PlayerPedId())
-                print(distVec)
                 if
                     math.abs(distVec.x) > math.abs(maxDims.x) or
                     math.abs(distVec.y) > math.abs(maxDims.y) or
