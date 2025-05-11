@@ -66,7 +66,7 @@ end
 
 Config.PlaceProp = function(model, coords)
     -- coods is optional
-    local prop = SpawnProp(model, coords or GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 3, false)
+    local prop = SpawnProp(model, coords or (GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId())) * 3, false)
     local data = exports['object_gizmo']:useGizmo(prop)
     data.coords = data.position
     DeleteObject(prop)
