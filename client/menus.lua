@@ -271,7 +271,7 @@ lib.registerMenu({
         DeleteFurniture(CurrentPropertyId, args.id)
     end
     if not (scrollIndex == 1) then
-        PlaceFurniture(args.model)
+        PlaceFurniture(args.model, GetEntityCoords(args.entity))
     end
     OpenPlacedFurnituresMenu()
 end)

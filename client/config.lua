@@ -64,8 +64,9 @@ Config.onPropertyExit = function (propertyId)
     TriggerServerEvent('MeteoNext:requestSync')
 end
 
-Config.PlaceProp = function(model)
-    local prop = SpawnProp(model, GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 3, false)
+Config.PlaceProp = function(model, coords)
+    -- coods is optional
+    local prop = SpawnProp(model, coords or GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 3, false)
     local data = exports['object_gizmo']:useGizmo(prop)
     data.coords = data.position
     DeleteObject(prop)

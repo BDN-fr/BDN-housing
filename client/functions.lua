@@ -198,8 +198,9 @@ function StopPreview()
     -- FreezeEntityPosition(PlayerPedId(), false)
 end
 
-function PlaceFurniture(model)
-    local data = Config.PlaceProp(model)
+function PlaceFurniture(model, coords)
+    -- coords is optional
+    local data = Config.PlaceProp(model, coords)
     local furniture = {}
     furniture.model = model
     furniture.coords = json.encode(data.position - CurrentPropertyCoords)
