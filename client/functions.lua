@@ -116,6 +116,16 @@ function SpawnFurniture(propertyCoords, v)
     SetEntityCoordsNoOffset(obj, coords.x, coords.y, coords.z, false, false, false)
     local rot = json.decode(v.rotation)
     SetEntityRotation(obj, rot.x, rot.y, rot.z, 2, false)
+    if v.matrix then
+        local matrix = json.decode(v.matrix)
+        SetEntityMatrix(
+            obj,
+            matrix[1].x, matrix[1].y, matrix[1].z,
+            matrix[2].x, matrix[2].y, matrix[2].z,
+            matrix[3].x, matrix[3].y, matrix[3].z,
+            coords.x, coords.y, coords.z
+        )
+    end
     CurrentPropertyFurnitures[v.id] = {model = v.model, obj = obj}
 end
 
@@ -198,13 +208,14 @@ function StopPreview()
     -- FreezeEntityPosition(PlayerPedId(), false)
 end
 
-function PlaceFurniture(model, coords)
-    -- coords is optional
-    local data = Config.PlaceProp(model, coords)
+function PlaceFurniture(model, coords, rot, matrix)
+    -- coords, rot and matrix are optionals
+    local data = Config.PlaceProp(model, coords, rot, matrix)
     local furniture = {}
     furniture.model = model
     furniture.coords = json.encode(data.position - CurrentPropertyCoords)
     furniture.rotation = json.encode(data.rotation)
+    furniture.matrix = json.encode(data.matrix)
     -- Client need to wait
     lib.callback.await('Housing:s:AddPropertyFurniture', 1000, CurrentPropertyId, furniture)
     -- TriggerServerEvent('Housing:s:AddPropertyFurniture', CurrentPropertyId, furniture)

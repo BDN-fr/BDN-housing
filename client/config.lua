@@ -64,17 +64,32 @@ Config.onPropertyExit = function (propertyId)
     TriggerServerEvent('MeteoNext:requestSync')
 end
 
-Config.PlaceProp = function(model, coords)
-    -- coods is optional
+Config.PlaceProp = function(model, coords, rot, matrix)
+    -- coords, rot and matrix are optionals
     local prop = SpawnProp(model, coords or (GetEntityCoords(PlayerPedId()) + GetEntityForwardVector(PlayerPedId()) * 3), false)
+    if rot then
+        SetEntityRotation(obj, rot.x, rot.y, rot.z, 2, false)
+    end
+    if matrix then
+        SetEntityMatrix(
+            prop,
+            matrix[1].x, matrix[1].y, matrix[1].z,
+            matrix[2].x, matrix[2].y, matrix[2].z,
+            matrix[3].x, matrix[3].y, matrix[3].z,
+            coords.x, coords.y, coords.z
+        )
+    end
     local data = exports['object_gizmo']:useGizmo(prop)
     data.coords = data.position
+    local forward, right, up = GetEntityMatrix(prop)
+    data.matrix = {forward, right, up}
     DeleteObject(prop)
     return data
     --[[
         data: {
             coords: {x:number,y:number,z:number}
             rotation: {x:number,y:number,z:number}
+            matrix: {vec3, vec3, vec3}
         }
     ]]
 end

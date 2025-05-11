@@ -99,8 +99,8 @@ function GetPropertyFurnituresAmount(propertyId)
 end
 
 function AddPropertyFurniture(propertyId, furniture)
-    local id = MySQL.insert.await('INSERT INTO `properties_furnitures` (property_id, model, coords, rotation) VALUES (?,?,?,?)', {
-        propertyId, furniture.model, furniture.coords, furniture.rotation
+    local id = MySQL.insert.await('INSERT INTO `properties_furnitures` (property_id, model, coords, rotation, matrix) VALUES (?,?,?,?,?)', {
+        propertyId, furniture.model, furniture.coords, furniture.rotation, furniture.matrix
     })
     furniture.id = id
     for playerId, pId in pairs(PlayersInsideProperties) do

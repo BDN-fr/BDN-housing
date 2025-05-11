@@ -268,11 +268,14 @@ lib.registerMenu({
     if not args.entity then return end
     SetEntityDrawOutline(args.entity, false)
     local coords = GetEntityCoords(args.entity)
+    local rot = GetEntityRotation(args.entity, 2)
+    local forward, right, up = GetEntityMatrix(args.entity)
+    local matrix = {forward, right, up}
     if not (scrollIndex == 3) then
         DeleteFurniture(CurrentPropertyId, args.id)
     end
     if not (scrollIndex == 1) then
-        PlaceFurniture(args.model, coords)
+        PlaceFurniture(args.model, coords, rot, matrix)
     end
     OpenPlacedFurnituresMenu()
 end)

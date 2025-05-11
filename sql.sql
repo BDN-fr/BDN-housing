@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `properties_furnitures` (
 	`model` TEXT NOT NULL,
 	`coords` TEXT NOT NULL,
 	`rotation` TEXT NOT NULL,
+	`matrix` TEXT,
 	PRIMARY KEY (`id`)
 );
 

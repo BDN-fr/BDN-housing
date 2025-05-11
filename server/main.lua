@@ -109,13 +109,3 @@ RegisterNetEvent('Housing:s:CreateProperty', function (data)
     local id = CreateProperty(data)
     AddKey(id, xPlayer.source)
 end)
-
-RegisterCommand('getBucket', function(source, args, rawCommand)
-    print(GetPlayerRoutingBucket(source))
-end, true)
-
-RegisterCommand('setBucket', function(source, args, rawCommand)
-    if not args[1] then return end
-    ---@diagnostic disable-next-line: param-type-mismatch
-    SetPlayerRoutingBucket(source, tonumber(args[1]))
-end, true)
