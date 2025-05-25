@@ -48,6 +48,7 @@ TriggerServerEvent('Housing:s:HeySendMePropertiesPlease')
 
 RegisterNetEvent('Housing:c:SubToProperty', function (propertyId, state)
     local p = Properties[propertyId]
+    if not p then return end
     if state then
         if not p.blip then
             p.blip = CreateBlip(p.enter_coords, Config.blip)
@@ -197,10 +198,12 @@ function EnterProperty(propertyId, shellType)
             while CurrentPropertyId == propertyId and not exiting do
                 Wait(500)
                 local distVec = coords - GetEntityCoords(PlayerPedId())
+                local maxDist = math.abs(maxDims.x) + math.abs(maxDims.y) + math.abs(maxDims.z)
                 if
-                    math.abs(distVec.x) > math.abs(maxDims.x) or
-                    math.abs(distVec.y) > math.abs(maxDims.y) or
-                    math.abs(distVec.z) > math.abs(maxDims.z)
+                    -- math.abs(distVec.x) > math.abs(maxDims.x) or
+                    -- math.abs(distVec.y) > math.abs(maxDims.y) or
+                    -- math.abs(distVec.z) > math.abs(maxDims.z)
+                    math.max(math.abs(distVec.x), math.abs(distVec.y), math.abs(distVec.z)) > maxDist
                 then
                     SetEntityCoords(PlayerPedId(), doorCoords.x, doorCoords.y, doorCoords.z, false, false, false, false)
                 end
