@@ -1,16 +1,16 @@
 --       /\     |‾|  |‾|  /‾‾‾‾\  |‾|  |‾|  /‾‾‾‾\ |‾‾‾‾‾‾| |‾‾\ |‾|  /‾‾‾‾‾\ 
 --      /[]\    | |__| | | /‾‾\ | | |  | | |  ___/  ‾|  |‾  |   \| | | |‾‾‾‾ 
---     /____\   | |  | | | |  | | | |  | |  \    \   |  |   | \  \ | | |____ 
+--     /____\   |      | | |  | | | |  | |  \    \   |  |   | \  \ | | |____ 
 --     |_   |   | |‾‾| | | \__/ | | \__/ |  /‾‾‾  | _|  |_  | |\   | | |__  |
 --     |_|__|   |_|  |_|  \____/   \____/   \____/ |______| |_| \__|  \____/ 
--- By BDN_fr - https://bdn-fr.xyz/ | For Odyssée WL - https://discord.gg/fH8bSDBFvK
+-- By BDN_fr - https://bdn-fr.xyz/ | Open Source - https://github.com/BDN-fr/BDN-housing
 
 print(([[
 
     /\     
    /[]\    %s
   /____\   By BDN_fr - https://bdn-fr.xyz/
-  |_   |   For Odyssée WL - https://discord.gg/fH8bSDBFvK
+  |_   |   Open Source - https://github.com/BDN-fr/BDN-housing
   |_|__|   
 ]]):format(GetCurrentResourceName()))
 
@@ -101,6 +101,11 @@ end, true)
 RegisterNetEvent('Housing:s:CreateProperty', function (data)
     local xPlayer = ESX.GetPlayerFromId(source)
     if xPlayer.job.name ~= Config.Job.name then return end
+    if not exports[Config.ox_inventory]:RemoveItem(xPlayer.source, Config.Items[Config.Shells[data.shell].itemType], 1) then
+        Config.Notify(xPlayer.source, L('LackItem'), 'error')
+        Config.Notify(xPlayer.source, L('CreationCanceled'), 'error')
+        return
+    end
     if not exports[Config.ox_inventory]:CanCarryItem(xPlayer.source, 'property_key', 1) then
         Config.Notify(xPlayer.source, L('CantCarryKey'), 'error')
         Config.Notify(xPlayer.source, L('CreationCanceled'), 'error')

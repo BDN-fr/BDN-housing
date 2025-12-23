@@ -155,6 +155,9 @@ end)
 
 RegisterNetEvent('Housing:c:RemoveProperty', function (id)
     if Properties[id].blip then RemoveBlip(Properties[id].blip) end
+    if ESX.PlayerData.job.name == Config.Job.name then
+        RemoveBlip(Properties[id].jobBlip)
+    end
     Properties[id] = nil
 end)
 

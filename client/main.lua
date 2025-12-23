@@ -1,16 +1,16 @@
 --       /\     |‾|  |‾|  /‾‾‾‾\  |‾|  |‾|  /‾‾‾‾\ |‾‾‾‾‾‾| |‾‾\ |‾|  /‾‾‾‾‾\ 
 --      /[]\    | |__| | | /‾‾\ | | |  | | |  ___/  ‾|  |‾  |   \| | | |‾‾‾‾ 
---     /____\   | |  | | | |  | | | |  | |  \    \   |  |   | \  \ | | |____ 
+--     /____\   |      | | |  | | | |  | |  \    \   |  |   | \  \ | | |____ 
 --     |_   |   | |‾‾| | | \__/ | | \__/ |  /‾‾‾  | _|  |_  | |\   | | |__  |
 --     |_|__|   |_|  |_|  \____/   \____/   \____/ |______| |_| \__|  \____/ 
--- By BDN_fr - https://bdn-fr.xyz/ | For Odyssée WL - https://discord.gg/fH8bSDBFvK
+-- By BDN_fr - https://bdn-fr.xyz/ | Open Source - https://github.com/BDN-fr/BDN-housing
 
 print(([[
 
     /\     
    /[]\    %s
   /____\   By BDN_fr - https://bdn-fr.xyz/
-  |_   |   For Odyssée WL - https://discord.gg/fH8bSDBFvK
+  |_   |   Open Source - https://github.com/BDN-fr/BDN-housing
   |_|__|   
 ]]):format(GetCurrentResourceName()))
 

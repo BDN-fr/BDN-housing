@@ -1,3 +1,6 @@
+Made for Odysée WL, thanks to them
+
+
 The `sql.sql` file don't have to be manually installed into your database, the script do it automatically
 
 Free shells :

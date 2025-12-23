@@ -54,6 +54,7 @@ Locales = {
         ChangeKeyCode = 'Changer la serrure',
         PreviewShells = 'Prévisualiser les intérieurs',
         QuitShellPreviewMessage = '[E] - Quitter la prévisualisation',
+        LackItem = 'Vous n\'avez pas l\'objet necessaire pour créer la propriété',
     }
 }
 
