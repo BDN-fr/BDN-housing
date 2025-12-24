@@ -25,3 +25,9 @@ CREATE TABLE IF NOT EXISTS `properties_layouts` (
 	`furnitures` MEDIUMTEXT NOT NULL DEFAULT '{}',
 	PRIMARY KEY (`id`)
 );
+
+CREATE TABLE IF NOT EXISTS `properties_keys` (
+	`identifier` VARCHAR(60) NOT NULL COLLATE 'utf8_general_ci',
+	`property_id` INT(11) NOT NULL,
+	PRIMARY KEY (`identifier`, `property_id`) USING BTREE
+);
