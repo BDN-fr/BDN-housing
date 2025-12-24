@@ -64,7 +64,8 @@ exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
     local xPlayer = ESX.GetPlayerFromId(playerId)
     if not xPlayer then return end
     if metadata.container then
-        local keys = exports[Config.ox_inventory]:GetSlotsWithItem(metadata.container, 'property_key')
+        local inv = exports[Config.ox_inventory]:GetContainerFromSlot(payload.fromInventory, exports[Config.ox_inventory]:GetSlotIdWithItem(payload.fromInventory, payload.fromSlot.name, metadata, true))
+        local keys = exports[Config.ox_inventory]:GetSlotsWithItem(inv, 'property_key')
         for id, slot in pairs(keys) do
             if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', slot.metadata, false) == 0 then
                 SetPlayerKey(xPlayer.identifier, slot.metadata.propertyId, state)

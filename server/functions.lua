@@ -284,8 +284,8 @@ function SubPlayerAllInvKeys(playerId, state)
             SubPlayerToProperty(slot.metadata.propertyId, playerId, state)
         end
         if slot.metadata.container then
-            local inv = exports[Config.ox_inventory]:GetInventory(slot.metadata.container)
-            local keys = exports[Config.ox_inventory]:GetSlotsWithItem(slot.metadata.container, 'property_key')
+            local inv = exports[Config.ox_inventory]:GetContainerFromSlot(playerId, id)
+            local keys = exports[Config.ox_inventory]:GetSlotsWithItem(inv, 'property_key')
             for id, slot in pairs(keys) do
                 SubPlayerToProperty(slot.metadata.propertyId, playerId, state)
             end
