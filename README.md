@@ -1,7 +1,6 @@
 Made for Odysée WL, thanks to them
 
-
-The `sql.sql` file don't have to be manually installed into your database, the script do it automatically
+Don't forget to install the `sql.sql` file into your database
 
 Free shells :
 https://k4mb1maps.com/product/5015840

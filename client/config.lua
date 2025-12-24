@@ -48,20 +48,21 @@ Config.furnitureMenuKey = 'F1'
 
 Config.onPropertyEnter = function (propertyId)
     -- Désactiver la météo et mettre le jour
-    CreateThread(function (threadId)
-        SetWeatherOwnedByNetwork(false)
-        while CurrentPropertyId == propertyId do
-            SetWeatherTypeNowPersist('CLEAR')
-            SetClockTime(12,00,00)
-            Wait(15000)
-        end
-        SetWeatherOwnedByNetwork(true)
-    end)
+    SetWeatherOwnedByNetwork(false)
+    NetworkOverrideClockTime(12,00,00)
+    PauseClock(true)
+    SetWeatherTypeNowPersist('CLEAR')
 end
 
 Config.onPropertyExit = function (propertyId)
     -- Réactiver la météo et syncroniser la bonne heure
-    TriggerServerEvent('MeteoNext:requestSync')
+    PauseClock(false)
+    local hours, minutes, seconds = NetworkGetGlobalMultiplayerClock()
+    NetworkOverrideClockTime(hours, minutes, seconds)
+    NetworkClearClockTimeOverride()
+    ClearWeatherTypePersist()
+    ClearOverrideWeather()
+    SetWeatherOwnedByNetwork(true)
 end
 
 Config.PlaceProp = function(model, coords, rot, matrix)

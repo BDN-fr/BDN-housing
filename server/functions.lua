@@ -30,7 +30,7 @@ RegisterNetEvent('Housing:s:giveKey', function (propertyId)
     AddKey(propertyId, source)
 end)
 
-function SubPlayeyToProperty(propertyId, playerId, state)
+function SubPlayerToProperty(propertyId, playerId, state)
     TriggerClientEvent('Housing:c:SubToProperty', playerId, propertyId, state)
 end
 
@@ -38,8 +38,23 @@ lib.callback.register('Housing:s:IsPropertyLocked', function (source, propertyId
     return PropertiesState[propertyId] or false
 end)
 
+local function doesInventoryHaveKey(propertyId, inventory)
+    return exports[Config.ox_inventory]:GetItemCount(inventory, 'property_key', {propertyId = propertyId, code = Properties[propertyId].key_code}, true) > 0
+end
+
 function DoesPlayerHavePropertyKey(propertyId, playerId)
-    return exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', {propertyId = propertyId, code = Properties[propertyId].key_code}, true) > 0
+    if doesInventoryHaveKey(propertyId, playerId) then
+        return true
+    end
+    local playerInv = exports[Config.ox_inventory]:GetInventoryItems(playerId)
+    for id, slot in pairs(playerInv) do
+        if slot.metadata.container then
+            if doesInventoryHaveKey(propertyId, exports[Config.ox_inventory]:GetContainerFromSlot(playerId, id)) then
+                return true
+            end
+        end
+    end
+    return false
 end
 
 lib.callback.register('Housing:s:DoesIHavePropertyKey', function (source, propertyId)
@@ -77,6 +92,7 @@ lib.callback.register('Housing:s:ExitProperty', function (source, clearMeta)
     SetPlayerRoutingBucket(source, Config.defaultRoutingBucket)
     PlayersInsideProperties[source] = nil
     local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return end
     if clearMeta then
         xPlayer.clearMeta('insideProperty')
     end
@@ -256,15 +272,35 @@ RegisterNetEvent('Housing:s:ChangeKeyCode', function (propertyId)
     AddKey(propertyId, source)
 end)
 
-function SubPlayeyAllInvKeys(playerId, state)
-    local slots
-    while not slots do
-        slots = exports[Config.ox_inventory]:GetSlotsWithItem(playerId, 'property_key')
+function SubPlayerAllInvKeys(playerId, state)
+    local items
+    while not items do
+        items = exports[Config.ox_inventory]:GetInventoryItems(playerId)
+        if not ESX.GetPlayerFromId(playerId) and not state then return end
         Wait(1)
     end
-    for i, v in ipairs(slots) do
-        if v.metadata.propertyId then
-            SubPlayeyToProperty(v.metadata.propertyId, playerId, state)
+    for id, slot in pairs(items) do
+        if slot.name == 'property_key' and slot.metadata.propertyId then
+            SubPlayerToProperty(slot.metadata.propertyId, playerId, state)
         end
+        if slot.metadata.container then
+            local inv = exports[Config.ox_inventory]:GetInventory(slot.metadata.container)
+            local keys = exports[Config.ox_inventory]:GetSlotsWithItem(slot.metadata.container, 'property_key')
+            for id, slot in pairs(keys) do
+                SubPlayerToProperty(slot.metadata.propertyId, playerId, state)
+            end
+        end
+    end
+end
+
+function SetPlayerKey(identifier, propertyId, state)
+    if state then
+        MySQL.insert('INSERT INTO `properties_keys` VALUES (?, ?)', {
+            identifier, propertyId
+        })
+    else
+        MySQL.rawExecute('DELETE FROM `properties_keys` WHERE `identifier` = ? AND `property_id` = ?', {
+            identifier, propertyId
+        })
     end
 end

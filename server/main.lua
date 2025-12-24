@@ -14,17 +14,17 @@ print(([[
   |_|__|   
 ]]):format(GetCurrentResourceName()))
 
-local file = io.open(("@%s/sql.sql"):format(GetCurrentResourceName()), "r")
-if not file then
-    error('sql.sql not found, please create a sql.sql file with the script\'s SQL', 0)
-else
-    local fileContent = file:read("*a")
-    for v in string.gmatch(fileContent, '[^;]*;') do
-        MySQL.rawExecute.await(v)
-    end
-    print('SQL successfully executed')
-    file:close()
-end
+-- local file = io.open(("@%s/sql.sql"):format(GetCurrentResourceName()), "r")
+-- if not file then
+--     error('sql.sql not found, please create a sql.sql file with the script\'s SQL', 0)
+-- else
+--     local fileContent = file:read("*a")
+--     for v in string.gmatch(fileContent, '[^;]*;') do
+--         MySQL.rawExecute.await(v)
+--     end
+--     print('SQL successfully executed')
+--     file:close()
+-- end
 
 Properties = {}
 MySQL.query('SELECT * FROM `properties`', {}, function (res)
@@ -46,7 +46,10 @@ PlayersInsideProperties = {}
 exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
     if not (payload.action == 'give' or payload.action == 'move') then return end
     if not (payload.fromType == 'player' or payload.toType == 'player') then return end
+    if payload.fromInventory == payload.toInventory then return end
+    if payload.fromType == 'container' or payload.toType == 'container' then return end
     local metadata = payload.fromSlot.metadata
+    if not payload.fromSlot.name == 'property_key' and not metadata.container then return end
     local playerId, state
     if payload.fromType == 'player' then
         -- Player giving a key
@@ -58,20 +61,41 @@ exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
         playerId = payload.toInventory
         state = true
     end
-    if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', metadata, true) > payload.count then return end
-    SubPlayeyToProperty(metadata.propertyId, playerId, state)
-end, {
-    itemFilter = {
-        ['property_key'] = true
-    }
-})
+    local xPlayer = ESX.GetPlayerFromId(playerId)
+    if not xPlayer then return end
+    if metadata.container then
+        local keys = exports[Config.ox_inventory]:GetSlotsWithItem(metadata.container, 'property_key')
+        for id, slot in pairs(keys) do
+            if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', slot.metadata, false) == 0 then
+                SetPlayerKey(xPlayer.identifier, slot.metadata.propertyId, state)
+                SubPlayerToProperty(slot.metadata.propertyId, playerId, state)
+            end
+        end
+    else
+        if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', metadata, false) > payload.count then return end
+        local items = exports[Config.ox_inventory]:GetInventoryItems(playerId)
+        for id, slot in pairs(items) do
+            if slot.metadata.container then
+                local inv = exports[Config.ox_inventory]:GetInventory(slot.metadata.container)
+                if exports[Config.ox_inventory]:GetItemCount(inv, 'property_key', metadata, false) > 0 then
+                    return
+                end
+            end
+        end
+        SetPlayerKey(xPlayer.identifier, metadata.propertyId, state)
+        SubPlayerToProperty(metadata.propertyId, playerId, state)
+    end
+end)
 
 exports[Config.ox_inventory]:registerHook('createItem', function(payload)
     if type(payload.inventoryId) ~= "number" then return end
     -- Player get a key
     local playerId = payload.inventoryId
-    if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', payload.metadata, true) > 0 then return end
-    SubPlayeyToProperty(payload.metadata.propertyId, playerId, true)
+    local xPlayer = ESX.GetPlayerFromId(playerId)
+    if not xPlayer then return end
+    if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', payload.metadata, false) > 0 then return end
+    SetPlayerKey(xPlayer.identifier, payload.metadata.propertyId, true)
+    SubPlayerToProperty(payload.metadata.propertyId, playerId, true)
 end, {
     itemFilter = {
         ['property_key'] = true
@@ -83,7 +107,7 @@ RegisterNetEvent('Housing:s:HeySendMePropertiesPlease', function ()
 end)
 
 RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer, isNew)
-    SubPlayeyAllInvKeys(playerId, true)
+    SubPlayerAllInvKeys(playerId, true)
 
     if xPlayer.getMeta('insideProperty') then
         TriggerClientEvent('Housing:c:EnterProperty', playerId, xPlayer.getMeta('insideProperty'))
@@ -91,7 +115,7 @@ RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer, isNew)
 end)
 
 RegisterNetEvent('esx:playerDropped', function(playerId, reason)
-    SubPlayeyAllInvKeys(playerId, false)
+    SubPlayerAllInvKeys(playerId, false)
 end)
 
 RegisterCommand('givekey', function(source, args, rawCommand)

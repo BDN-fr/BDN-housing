@@ -31,6 +31,9 @@ RegisterNetEvent('esx:playerLoaded', function(xPlayer, isNew, skin)
     ESX.PlayerData.job = xPlayer.job
     ESX.PlayerData.job.name = xPlayer.job.name
     ShowJobBlips()
+end)
+
+RegisterNetEvent('esx:onPlayerLogout', function ()
     -- When changing character
     ---@diagnostic disable-next-line: param-type-mismatch
     DeleteObject(CurrentPropertyObj)
@@ -161,23 +164,25 @@ function EnterProperty(propertyId, shellType)
     if preview then
         Properties[propertyId] = {shell = shellType, enter_coords = GetEntityCoords(PlayerPedId())}
     end
-    if Config.onPropertyEnter then
-        Config.onPropertyEnter(propertyId)
-    end
     CreateThread(function (threadId)
         local p = Properties[propertyId]
 
         DoScreenFadeOut(500)
         FreezeEntityPosition(PlayerPedId(), true)
-        local tpTime = GetGameTimer()+500
 
-        local coords = vec3(p.enter_coords.x, p.enter_coords.y, p.enter_coords.z+500)
+        local coords = vec3(p.enter_coords.x, p.enter_coords.y, p.enter_coords.z+300)
         CurrentPropertyCoords = coords
         local doorCoords = coords + Config.Shells[p.shell].door
+
+        Wait(500)
 
         if not preview then
             -- This is a callback because we need to wait to be in the right bucket
             lib.callback.await('Housing:s:EnterProperty', 1000, propertyId)
+        end
+
+        if Config.onPropertyEnter then
+            Config.onPropertyEnter(propertyId)
         end
 
         CurrentPropertyObj = SpawnProp(p.shell, coords)
@@ -185,7 +190,6 @@ function EnterProperty(propertyId, shellType)
         local furnitures = lib.callback.await('Housing:s:GetPropertyFurnitures', 100, propertyId)
         SpawnFurnitures(coords, furnitures)
 
-        Wait(tpTime-GetGameTimer())
         SetEntityCoords(PlayerPedId(), doorCoords.x, doorCoords.y, doorCoords.z, false, false, false, false)
 
         CurrentPropertyId = propertyId
@@ -279,9 +283,6 @@ RegisterNetEvent('Housing:c:EnterProperty', EnterProperty)
 function ExitProperty()
     exiting = true
     local preview = CurrentPropertyId == 'preview'
-    if Config.onPropertyExit then
-        Config.onPropertyExit(CurrentPropertyId)
-    end
     DoScreenFadeOut(500)
     FreezeEntityPosition(PlayerPedId(), true)
     Wait(500)
@@ -290,10 +291,13 @@ function ExitProperty()
     RemoveFurnitures(CurrentPropertyFurnitures)
     if not preview then
         -- This is a callback because we need to wait to be in the right bucket
-        lib.callback.await('Housing:s:ExitProperty', 1000)
+        lib.callback.await('Housing:s:ExitProperty', 1000, true)
     end
     ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
     SetEntityCoords(PlayerPedId(), Properties[CurrentPropertyId].enter_coords, false, false, false, false)
+    if Config.onPropertyExit then
+        Config.onPropertyExit(CurrentPropertyId)
+    end
     if preview then
         Properties[CurrentPropertyId] = nil
     end

@@ -265,7 +265,7 @@ lib.registerMenu({
         SetEntityDrawOutline(currentEntity, true)
     end
 }, function(selected, scrollIndex, args)
-    if not args.entity then return end
+    if not args?.entity then return end
     SetEntityDrawOutline(args.entity, false)
     local coords = GetEntityCoords(args.entity)
     local rot = GetEntityRotation(args.entity, 2)
