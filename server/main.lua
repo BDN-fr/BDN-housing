@@ -57,7 +57,8 @@ local function playerHook(payload, playerId, state)
             end
         end
     else
-        if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', metadata, false) > payload.count then return end
+        local count = state and 0 or payload.count
+        if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', metadata, false) > count then return end
         local items = exports[Config.ox_inventory]:GetInventoryItems(playerId)
         for id, slot in pairs(items) do
             if slot.metadata.container then
