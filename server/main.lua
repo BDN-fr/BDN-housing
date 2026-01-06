@@ -79,7 +79,7 @@ exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
     if payload.fromInventory == payload.toInventory then return end
     if payload.fromType == 'container' or payload.toType == 'container' then return end
     local metadata = payload.fromSlot.metadata
-    if not payload.fromSlot.name == 'property_key' and not metadata.container then return end
+    if not (payload.fromSlot.name == 'property_key') and metadata.container == nil then return end
     if payload.fromType == 'player' and payload.toType == 'player' then
         local idFrom = payload.fromInventory
         local idTo = payload.toInventory
@@ -100,21 +100,6 @@ exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
     end
     playerHook(payload, playerId, state)
 end)
-
-exports[Config.ox_inventory]:registerHook('createItem', function(payload)
-    if type(payload.inventoryId) ~= "number" then return end
-    -- Player get a key
-    local playerId = payload.inventoryId
-    local xPlayer = ESX.GetPlayerFromId(playerId)
-    if not xPlayer then return end
-    if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', payload.metadata, false) > 0 then return end
-    SetPlayerKey(xPlayer.identifier, payload.metadata.propertyId, true)
-    SubPlayerToProperty(payload.metadata.propertyId, playerId, true)
-end, {
-    itemFilter = {
-        ['property_key'] = true
-    }
-})
 
 RegisterNetEvent('Housing:s:HeySendMePropertiesPlease', function ()
     TriggerClientEvent('Housing:c:RegisterProperties', source, Properties)

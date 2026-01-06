@@ -19,6 +19,10 @@ function AddKey(propertyId, playerId)
         propertyId = propertyId,
         code = Properties[propertyId].key_code
     })
+    SubPlayerToProperty(propertyId, playerId, true)
+    local xPlayer = ESX.GetPlayerFromId(playerId)
+    if not xPlayer then return end
+    SetPlayerKey(xPlayer.identifier, propertyId, true)
 end
 
 RegisterNetEvent('Housing:s:giveKey', function (propertyId)
