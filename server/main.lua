@@ -43,24 +43,8 @@ end)
 PropertiesState = {}
 PlayersInsideProperties = {}
 
-exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
-    if not (payload.action == 'give' or payload.action == 'move') then return end
-    if not (payload.fromType == 'player' or payload.toType == 'player') then return end
-    if payload.fromInventory == payload.toInventory then return end
-    if payload.fromType == 'container' or payload.toType == 'container' then return end
+local function playerHook(payload, playerId, state)
     local metadata = payload.fromSlot.metadata
-    if not payload.fromSlot.name == 'property_key' and not metadata.container then return end
-    local playerId, state
-    if payload.fromType == 'player' then
-        -- Player giving a key
-        playerId = payload.fromInventory
-        state = false
-    end
-    if payload.toType == 'player' then
-        -- Player reciving a key
-        playerId = payload.toInventory
-        state = true
-    end
     local xPlayer = ESX.GetPlayerFromId(playerId)
     if not xPlayer then return end
     if metadata.container then
@@ -86,6 +70,34 @@ exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
         SetPlayerKey(xPlayer.identifier, metadata.propertyId, state)
         SubPlayerToProperty(metadata.propertyId, playerId, state)
     end
+end
+
+exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
+    if not (payload.action == 'give' or payload.action == 'move') then return end
+    if not (payload.fromType == 'player' or payload.toType == 'player') then return end
+    if payload.fromInventory == payload.toInventory then return end
+    if payload.fromType == 'container' or payload.toType == 'container' then return end
+    local metadata = payload.fromSlot.metadata
+    if not payload.fromSlot.name == 'property_key' and not metadata.container then return end
+    if payload.fromType == 'player' and payload.toType == 'player' then
+        local idFrom = payload.fromInventory
+        local idTo = payload.toInventory
+        playerHook(payload, idFrom, false)
+        playerHook(payload, idTo, true)
+        return
+    end
+    local playerId, state
+    if payload.fromType == 'player' then
+        -- Player giving a key
+        playerId = payload.fromInventory
+        state = false
+    end
+    if payload.toType == 'player' then
+        -- Player reciving a key
+        playerId = payload.toInventory
+        state = true
+    end
+    playerHook(payload, playerId, state)
 end)
 
 exports[Config.ox_inventory]:registerHook('createItem', function(payload)
