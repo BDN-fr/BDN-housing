@@ -51,24 +51,24 @@ local function playerHook(payload, playerId, state)
         local inv = exports[Config.ox_inventory]:GetContainerFromSlot(payload.fromInventory, exports[Config.ox_inventory]:GetSlotIdWithItem(payload.fromInventory, payload.fromSlot.name, metadata, true))
         local keys = exports[Config.ox_inventory]:GetSlotsWithItem(inv, 'property_key')
         for id, slot in pairs(keys) do
-            if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', slot.metadata, false) == 0 then
-                SetPlayerKey(xPlayer.identifier, slot.metadata.propertyId, state)
+            if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', slot.metadata, true) == 0 then
+                SetPlayerKey(xPlayer.identifier, slot.metadata.propertyId, slot.metadata.code, state)
                 SubPlayerToProperty(slot.metadata.propertyId, playerId, state)
             end
         end
     else
         local count = state and 0 or payload.count
-        if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', metadata, false) > count then return end
+        if exports[Config.ox_inventory]:GetItemCount(playerId, 'property_key', metadata, true) > count then return end
         local items = exports[Config.ox_inventory]:GetInventoryItems(playerId)
         for id, slot in pairs(items) do
             if slot.metadata.container then
                 local inv = exports[Config.ox_inventory]:GetInventory(slot.metadata.container)
-                if exports[Config.ox_inventory]:GetItemCount(inv, 'property_key', metadata, false) > 0 then
+                if exports[Config.ox_inventory]:GetItemCount(inv, 'property_key', metadata, true) > 0 then
                     return
                 end
             end
         end
-        SetPlayerKey(xPlayer.identifier, metadata.propertyId, state)
+        SetPlayerKey(xPlayer.identifier, metadata.propertyId, metadata.code, state)
         SubPlayerToProperty(metadata.propertyId, playerId, state)
     end
 end

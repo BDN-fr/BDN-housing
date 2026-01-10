@@ -1,9 +1,10 @@
 function CreateProperty(data)
-    local code = math.random(0,1000)
     local id = MySQL.insert.await('INSERT INTO `properties` (shell, enter_coords, key_code) VALUES (?, ?, ?)', {
-        data.shell, json.encode(data.enterCoords), code
+        data.shell, json.encode(data.enterCoords), 0
     })
-    Properties[id] = {shell = data.shell, enter_coords = data.enterCoords, key_code = code}
+    Properties[id] = {shell = data.shell, enter_coords = data.enterCoords}
+    local code = GenerateCode(id)
+    UpdatePropertyCode(id, code)
     exports[Config.ox_inventory]:RegisterStash('property'..id, L('Storage'), Config.Storage.slots, Config.Storage.weight)
     TriggerClientEvent('Housing:c:AddProperty', -1, {id, Properties[id]})
     return id
@@ -22,7 +23,7 @@ function AddKey(propertyId, playerId)
     SubPlayerToProperty(propertyId, playerId, true)
     local xPlayer = ESX.GetPlayerFromId(playerId)
     if not xPlayer then return end
-    SetPlayerKey(xPlayer.identifier, propertyId, true)
+    SetPlayerKey(xPlayer.identifier, propertyId, Properties[propertyId].key_code, true)
 end
 
 RegisterNetEvent('Housing:s:giveKey', function (propertyId)
@@ -163,9 +164,16 @@ end)
 
 function ClearPropertyFurnitures(propertyId)
     local furnitures = GetPropertyFurnitures(propertyId)
-    for i, v in ipairs(furnitures) do
-        DeleteFurniture(propertyId, v.id)
+    for playerId, pId in pairs(PlayersInsideProperties) do
+        if pId == propertyId then
+            for i, v in ipairs(furnitures) do
+                TriggerClientEvent('Housing:c:RemoveFurnitureInCurrentProperty', playerId, v.id)
+            end
+        end
     end
+    MySQL.rawExecute('DELETE FROM `properties_furnitures` WHERE `property_id` = ?', {
+        propertyId
+    })
 end
 
 RegisterNetEvent('Housing:s:RingProperty', function (propertyId)
@@ -260,6 +268,19 @@ RegisterNetEvent('Housing:s:DeleteProperty', function (propertyId)
     TriggerClientEvent('Housing:c:RemoveProperty', -1, propertyId)
 end)
 
+function GenerateCode(propertyId)
+    local code = math.random(0, 100000000)
+    code = joaat(propertyId..':'..code)
+    return code
+end
+
+function UpdatePropertyCode(propertyId, code)
+    Properties[propertyId].key_code = code
+    MySQL.update.await('UPDATE `properties` SET key_code = ? WHERE id = ?', {
+        code, propertyId
+    })
+end
+
 RegisterNetEvent('Housing:s:ChangeKeyCode', function (propertyId)
     local source = source
     local xPlayer = ESX.GetPlayerFromId(source)
@@ -268,11 +289,8 @@ RegisterNetEvent('Housing:s:ChangeKeyCode', function (propertyId)
         Config.Notify(source, L('CantCarryKey'), 'error')
         return
     end
-    local newCode = math.random(0, 1000)
-    Properties[propertyId].key_code = newCode
-    MySQL.update('UPDATE `properties` SET key_code = ? WHERE id = ?', {
-        newCode, propertyId
-    })
+    local newCode = GenerateCode(propertyId)
+    UpdatePropertyCode(propertyId, newCode)
     AddKey(propertyId, source)
 end)
 
@@ -297,14 +315,14 @@ function SubPlayerAllInvKeys(playerId, state)
     end
 end
 
-function SetPlayerKey(identifier, propertyId, state)
+function SetPlayerKey(identifier, propertyId, code, state)
     if state then
-        MySQL.insert('INSERT INTO `properties_keys` VALUES (?, ?)', {
-            identifier, propertyId
+        MySQL.insert('INSERT INTO `properties_keys` VALUES (?, ?, ?)', {
+            identifier, propertyId, code
         })
     else
-        MySQL.rawExecute('DELETE FROM `properties_keys` WHERE `identifier` = ? AND `property_id` = ?', {
-            identifier, propertyId
+        MySQL.rawExecute('DELETE FROM `properties_keys` WHERE `identifier` = ? AND `property_id` = ? AND `key_code` = ?', {
+            identifier, propertyId, code
         })
     end
 end

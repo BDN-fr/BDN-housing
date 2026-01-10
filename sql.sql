@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS `properties` (
 	`shell` TEXT NOT NULL DEFAULT '',
 	`enter_coords` TEXT NOT NULL DEFAULT '',
 	`storage_coords` TEXT DEFAULT NULL,
-	`key_code` INT NOT NULL,
+	`key_code` INT(11) UNSIGNED NOT NULL,
 	PRIMARY KEY (`id`)
 );
 
@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS `properties_layouts` (
 );
 
 CREATE TABLE IF NOT EXISTS `properties_keys` (
-	`identifier` VARCHAR(60) NOT NULL COLLATE 'utf8_general_ci',
+	`identifier` VARCHAR(60) NOT NULL COLLATE 'utf8mb3_general_ci',
 	`property_id` INT(11) NOT NULL,
-	PRIMARY KEY (`identifier`, `property_id`) USING BTREE
+	`key_code` INT(11) UNSIGNED NOT NULL,
+	PRIMARY KEY (`identifier`, `property_id`, `key_code`) USING BTREE
 );
