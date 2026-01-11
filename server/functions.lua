@@ -269,9 +269,7 @@ RegisterNetEvent('Housing:s:DeleteProperty', function (propertyId)
 end)
 
 function GenerateCode(propertyId)
-    local code = math.random(0, 100000000)
-    code = joaat(propertyId..':'..code)
-    return code
+    return joaat(propertyId..':'..math.random(0, 100000000)..':'..os.time()..':'..GetGameTimer())
 end
 
 function UpdatePropertyCode(propertyId, code)
