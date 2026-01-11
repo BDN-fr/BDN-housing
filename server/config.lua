@@ -9,6 +9,6 @@ Config.Storage = {
 
 ---@diagnostic disable-next-line: duplicate-set-field
 Config.Notify = function (playerId, message, type)
-    -- Possible types : 'inform', 'success', 'error', 'warning'
+    -- Possible types : 'info', 'success', 'error', 'warning'
     TriggerClientEvent('Housing:c:Notify', playerId, message, type)
 end

@@ -179,7 +179,7 @@ end
 RegisterNetEvent('Housing:s:RingProperty', function (propertyId)
     for playerId, pId in pairs(PlayersInsideProperties) do
         if pId == propertyId then
-            Config.Notify(playerId, L('Ringed'), 'inform')
+            Config.Notify(playerId, L('Ringed'), 'info')
         end
     end
 end)

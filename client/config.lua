@@ -104,7 +104,8 @@ end
 
 ---@diagnostic disable-next-line: duplicate-set-field
 Config.Notify = function (message, type)
-    -- Possible types : 'inform', 'success', 'error', 'warning'
+    -- Possible types : 'info', 'success', 'error', 'warning'
+    type = type == 'info' and 'inform' or type
     lib.notify({description = message, type = type})
 end
 
