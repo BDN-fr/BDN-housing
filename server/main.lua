@@ -117,7 +117,7 @@ RegisterNetEvent('esx:playerDropped', function(playerId, reason)
     SubPlayerAllInvKeys(playerId, false)
 end)
 
-RegisterCommand('givekey', function(source, args, rawCommand)
+RegisterCommand('givepropertykey', function(source, args, rawCommand)
     AddKey(tonumber(args[1]), source)
 end, true)
 
