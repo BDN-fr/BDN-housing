@@ -148,11 +148,11 @@ CreateThread(function (threadId)
                         OpenPropertyJobMenu(nearestId)
                     end
                 end
-            else
-                local isOpen, currentText = lib.isTextUIOpen()
-                if isOpen and currentText == uiText then
-                    lib.hideTextUI()
-                end
+            end
+        else
+            local isOpen, currentText = lib.isTextUIOpen()
+            if isOpen and currentText == uiText then
+                lib.hideTextUI()
             end
         end
         Wait(waitTime)
