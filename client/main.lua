@@ -149,7 +149,8 @@ CreateThread(function (threadId)
                     end
                 end
             end
-        else
+        end
+        if nearestDist > 2 then
             local isOpen, currentText = lib.isTextUIOpen()
             if isOpen and currentText == uiText then
                 lib.hideTextUI()
