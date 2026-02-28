@@ -44,7 +44,7 @@ Config.Job.blip = {
     showAtShortRange = true
 }
 
-Config.furnitureMenuKey = 'F1'
+Config.furnitureMenuKey = 'EQUALS'
 
 Config.onPropertyEnter = function (propertyId)
     -- Désactiver la météo et mettre le jour

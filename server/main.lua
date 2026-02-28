@@ -113,10 +113,6 @@ RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer, isNew)
     end
 end)
 
-RegisterNetEvent('esx:playerDropped', function(playerId, reason)
-    SubPlayerAllInvKeys(playerId, false)
-end)
-
 RegisterCommand('givepropertykey', function(source, args, rawCommand)
     AddKey(tonumber(args[1]), source)
 end, true)

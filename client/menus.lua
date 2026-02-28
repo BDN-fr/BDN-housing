@@ -158,12 +158,6 @@ function OpenFurnitureMenu()
             }
         },
         {
-            label = L('PlaceStorage'),
-            args = {
-                action = 'placeStorage'
-            }
-        },
-        {
             label = L('Separator')
         },
         {
@@ -189,6 +183,14 @@ function OpenFurnitureMenu()
             label = L('Separator')
         }
     }
+    if Config.Storage.slots > 0 then
+        table.insert(options, 2, {
+            label = L('PlaceStorage'),
+            args = {
+                action = 'placeStorage'
+            }
+        })
+    end
     for k, v in pairs(Config.Props) do
         table.insert(options, {
             label = k,

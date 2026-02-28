@@ -42,6 +42,12 @@ RegisterNetEvent('esx:onPlayerLogout', function ()
     CurrentPropertyId = nil
     CurrentPropertyCoords = nil
     lib.callback.await('Housing:s:ExitProperty', 1000, false)
+    for i, p in ipairs(Properties) do
+        if p.blip then
+            RemoveBlip(p.blip)
+            p.blip = nil
+        end
+    end
 end)
 
 RegisterNetEvent('Housing:c:RegisterProperties', function (properties)

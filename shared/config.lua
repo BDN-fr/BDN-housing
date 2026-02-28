@@ -6,9 +6,14 @@ Config.ox_inventory = 'ox_inventory'
 Config.lang = 'fr'
 
 Config.Job = Config.Job or {}
-Config.Job.name = 'rea'
+Config.Job.name = 'immo'
 
 Config.maxFurnitures = 500
+
+Config.Storage = {
+  weight = 50000,
+  slots = 50 -- Set to 0 to disable
+}
 
 Config.Items = {
   ['wherehouse'] = 'immo_wherehouse',

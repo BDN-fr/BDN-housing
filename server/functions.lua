@@ -315,7 +315,7 @@ end
 
 function SetPlayerKey(identifier, propertyId, code, state)
     if state then
-        MySQL.insert('INSERT INTO `properties_keys` VALUES (?, ?, ?)', {
+        MySQL.insert('INSERT IGNORE INTO `properties_keys` VALUES (?, ?, ?)', {
             identifier, propertyId, code
         })
     else
