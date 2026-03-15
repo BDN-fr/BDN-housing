@@ -39,6 +39,7 @@ MySQL.query('SELECT * FROM `properties`', {}, function (res)
         Properties[v.id] = v
         exports[Config.ox_inventory]:RegisterStash('property'..v.id, L('Storage'), Config.Storage.slots, Config.Storage.weight)
     end
+    Properties['preview'] = {enter_coords = Config.visit}
 end)
 PropertiesState = {}
 PlayersInsideProperties = {}

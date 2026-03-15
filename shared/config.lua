@@ -12,12 +12,14 @@ Config.maxFurnitures = 500
 
 Config.Storage = {
   weight = 50000,
-  slots = 50 -- Set to 0 to disable
+  slots = 0 -- Set to 0 to disable
 }
 
 Config.Items = {
-  ['wherehouse'] = 'immo_wherehouse',
   ['small'] = 'immo_small',
   ['medium'] = 'immo_medium',
-  ['big'] = 'immo_big'
+  ['large'] = 'immo_large',
+  ['xl'] = 'immo_xl',
 }
+
+Config.visit = vector3(-861.3554, -355.8356, 38.6807)

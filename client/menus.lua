@@ -383,3 +383,27 @@ function OpenPropertyJobMenu(propertyId)
     menuPropertyId = propertyId
     lib.showContext('propertyJobMenu')
 end
+
+function ChooseShell()
+    local typesOptions = {}
+    for k, v in pairs(Config.Items) do
+        table.insert(typesOptions, {value = k, label = string.upper(k):sub(1,1)..string.lower(k):sub(2)})
+    end
+    local shellType = lib.inputDialog(L('InteriorType'), {
+        {type = 'select', label = L('InteriorType'), options = typesOptions, required = true}
+    })?[1]
+    if not shellType then return end
+    local shellsOptions = {}
+    for k, v in pairs(Config.Shells) do
+        if v.itemType == shellType then
+            table.insert(shellsOptions, {value = k, label = v.label})
+        end
+    end
+    table.sort(shellsOptions, function (a, b)
+        return a.label < b.label
+    end)
+    local input = lib.inputDialog(L('CreateProperty'), {
+        {type = 'select', label = L('InteriorType'), options = shellsOptions, required = true, searchable = true}
+    })
+    return input?[1]
+end

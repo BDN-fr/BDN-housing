@@ -46,23 +46,17 @@ function CreateProperty()
             end
         end)
     end)
-    local shellsOptions = {}
-    for k, v in pairs(Config.Shells) do
-        table.insert(shellsOptions, {value = k, label = v.label})
-    end
-    local input = lib.inputDialog(L('CreateProperty'), {
-        {type = 'select', label = L('InteriorType'), options = shellsOptions, required = true, searchable = true}
-    })
-    if not input then
+    local shell = ChooseShell()
+    if not shell then
         isCreatingProperty = false
         return
     end
-    EnterProperty('preview', input[1])
+    EnterProperty('preview', shell)
     WaitInput(L('PreviewValidationText'), {51, 73}, function (key)
         ExitProperty()
         if key == 51 then
             local data = {}
-            data.shell = input[1]
+            data.shell = shell
             data.enterCoords = enterCoords
             TriggerServerEvent('Housing:s:CreateProperty', data)
         end
@@ -89,7 +83,7 @@ function CreateGarage()
     local input = lib.inputDialog(L('CreateGarage'), {
         {type = 'select', label = L('SlotAmount'), options = options, required = true, searchable = true}
     })
-    if not input then
+    if not input or not input[1] then
         isCreatingProperty = false
         return
     end

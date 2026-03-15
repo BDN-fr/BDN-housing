@@ -71,7 +71,7 @@ end)
 function ShowJobBlips()
     if ESX.PlayerData.job.name == Config.Job.name then
         for k,v in pairs(Properties) do
-            if not v.jobBlip then
+            if not v.jobBlip and not k == 'preview' then
                 v.jobBlip = CreateBlip(v.enter_coords, Config.Job.blip)
             end
         end
@@ -103,7 +103,7 @@ CreateThread(function (threadId)
             if v then
                 local pos = GetEntityCoords(PlayerPedId())
                 local dist = #(v.enter_coords - pos)
-                if dist < nearestDist and k ~= 'preview' then
+                if dist < nearestDist then
                     nearestDist = dist
                     nearestCoords = v.enter_coords
                     nearestId = k
@@ -117,41 +117,64 @@ CreateThread(function (threadId)
 
             if nearestDist < 2 then
                 if not lib.isTextUIOpen() then
-                    lib.callback('Housing:s:IsPropertyLocked', 1000, function (res)
-                        state = res
-                    end, nearestId)
-                    if ESX?.PlayerData?.job?.name == Config.Job.name then
-                        uiText = L('PropertyEnterText')..L('PropertyEnterTextJob')
+                    if nearestId == 'preview' then
+                        state = true
+                        uiText = L('PropertyVisit')
                     else
-                        uiText = L('PropertyEnterText')
+                        lib.callback('Housing:s:IsPropertyLocked', 1000, function (res)
+                            state = res
+                        end, nearestId)
+                        if ESX?.PlayerData?.job?.name == Config.Job.name then
+                            uiText = L('PropertyEnterText')..L('PropertyEnterTextJob')
+                        else
+                            uiText = L('PropertyEnterText')
+                        end
                     end
                     lib.showTextUI(uiText)
                 end
 
-                stateText = state and '🔓' or '🔒'
-                ESX.Game.Utils.DrawText3D(vec3(nearestCoords.xy, nearestCoords.z+Config.stateOffset), stateText, 1.0, 1)
+                stateText = nearestId == 'preview' and L('Visit') or (state and '🔓' or '🔒')
+                ESX.Game.Utils.DrawText3D(vec3(nearestCoords.xy, nearestCoords.z+Config.stateOffset), stateText, 1.0, 2)
 
                 if IsControlJustReleased(0, 51) then
-                    if state then
-                        EnterProperty(nearestId)
-                    elseif lib.callback.await('Housing:s:DoesIHavePropertyKey', 1000, nearestId) then
-                        EnterProperty(nearestId)
+                    if nearestId == 'preview' then
+                        local shell = ChooseShell()
+                        if shell then
+                            EnterProperty('preview', shell)
+                            CreateThread(function (threadId)
+                                WaitInput(L('PropertyVisitExit'), {51}, function (key)
+                                    ExitProperty()
+                                end)
+                            end)
+                        end
                     else
-                        Config.Notify(L('LockedProperty'), 'error')
+                        if state then
+                            EnterProperty(nearestId)
+                        elseif lib.callback.await('Housing:s:DoesIHavePropertyKey', 1000, nearestId) then
+                            EnterProperty(nearestId)
+                        else
+                            Config.Notify(L('LockedProperty'), 'error')
+                        end
                     end
                 end
 
                 if IsControlJustReleased(0, 47) then
-                    RingProperty(nearestId)
+                    if not nearestId == 'preview' then
+                        RingProperty(nearestId)
+                    end
                 end
 
                 if IsControlJustReleased(0, 74) then
-                    TogglePropertyLock(nearestId)
+                    if not nearestId == 'preview' then
+                        TogglePropertyLock(nearestId)
+                    end
                 end
 
                 if ESX.PlayerData.job.name == Config.Job.name then
                     if IsControlJustReleased(0, 303) then
-                        OpenPropertyJobMenu(nearestId)
+                        if not nearestId == 'preview' then
+                            OpenPropertyJobMenu(nearestId)
+                        end
                     end
                 end
             end
@@ -169,7 +192,8 @@ end)
 function EnterProperty(propertyId, shellType)
     local preview = propertyId == 'preview'
     if preview then
-        Properties[propertyId] = {shell = shellType, enter_coords = GetEntityCoords(PlayerPedId())}
+        if not shellType then return end
+        Properties['preview']['shell'] = shellType
     end
     CreateThread(function (threadId)
         local p = Properties[propertyId]
@@ -306,7 +330,7 @@ function ExitProperty()
         Config.onPropertyExit(CurrentPropertyId)
     end
     if preview then
-        Properties[CurrentPropertyId] = nil
+        Properties[CurrentPropertyId]['shell'] = nil
     end
     CurrentPropertyId = nil
     CurrentPropertyObj = nil

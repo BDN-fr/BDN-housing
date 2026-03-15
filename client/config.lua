@@ -24,7 +24,7 @@ Config.blip = {
     -- https://docs.fivem.net/docs/game-references/blips/
     sprite = 40,
     color = 66,
-    scale = 1.0,
+    scale = 0.5,
     display = 2, -- https://docs.fivem.net/natives/?_0x9029B2F3DA924928
     alpha = 255,
     showAtShortRange = true
@@ -96,7 +96,7 @@ Config.PlaceProp = function(model, coords, rot, matrix)
 end
 
 Config.Garage = {}
-Config.Garage.Activated = true -- Turn on / off the garage creation
+Config.Garage.Activated = false -- Turn on / off the garage creation
 Config.Garage.SlotsOptions = {1,2,3,4,5,6,7,8,10,12,16}
 Config.Garage.Register = function (coords, slotsAmount)
     print(coords, slotsAmount)
@@ -105,8 +105,7 @@ end
 ---@diagnostic disable-next-line: duplicate-set-field
 Config.Notify = function (message, type)
     -- Possible types : 'info', 'success', 'error', 'warning'
-    type = type == 'info' and 'inform' or type
-    lib.notify({description = message, type = type})
+    ESX.ShowNotification(message, type)
 end
 
 RegisterNetEvent('Housing:c:Notify', function (...)
