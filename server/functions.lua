@@ -1,17 +1,16 @@
 function CreateProperty(data)
-    local id = MySQL.insert.await('INSERT INTO `properties` (shell, enter_coords, key_code) VALUES (?, ?, ?)', {
-        data.shell, json.encode(data.enterCoords), 0
+    local id = MySQL.insert.await('INSERT INTO `properties` (shell, enter_coords, key_code, stack) VALUES (?, ?, ?, ?)', {
+        data.shell, data.enterCoords and json.encode(data.enterCoords) or nil, 0, data.stack or nil
     })
-    Properties[id] = {shell = data.shell, enter_coords = data.enterCoords}
+    Properties[id] = {shell = data.shell, enter_coords = data.enterCoords, stack = data.stack, id = id}
     local code = GenerateCode(id)
     UpdatePropertyCode(id, code)
     exports[Config.ox_inventory]:RegisterStash('property'..id, L('Storage'), Config.Storage.slots, Config.Storage.weight)
-    TriggerClientEvent('Housing:c:AddProperty', -1, {id, Properties[id]})
+    TriggerClientEvent('Housing:c:AddProperty', -1, Properties[id])
     return id
 end
 
 function AddKey(propertyId, playerId)
-    -- In case I don't it check before
     if not exports[Config.ox_inventory]:CanCarryItem(playerId, 'property_key', 1) then
         Config.Notify(playerId, L('CantCarryKey'), 'error')
         return false
@@ -89,6 +88,7 @@ lib.callback.register('Housing:s:EnterProperty', function (source, propertyId)
     SetPlayerRoutingBucket(source, propertyId)
     PlayersInsideProperties[source] = propertyId
     local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return end
     xPlayer.setMeta('insideProperty', propertyId)
 end)
 
@@ -218,6 +218,7 @@ end)
 
 function GetPlayerLayouts(playerId)
     local xPlayer = ESX.GetPlayerFromId(playerId)
+    if not xPlayer then return {} end
     return MySQL.query.await('SELECT id, name, shell FROM `properties_layouts` WHERE identifier = ?', {
         xPlayer.getIdentifier()
     })
@@ -324,3 +325,31 @@ function SetPlayerKey(identifier, propertyId, code, state)
         })
     end
 end
+
+RegisterNetEvent('Housing:s:CreateStack', function ()
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return end
+    if not xPlayer.job.name == Config.Job.name then return end
+    local coords = xPlayer.getCoords(true, false)
+    local id = MySQL.insert.await('INSERT INTO `properties_stacks` (enter_coords) VALUES (?)', {
+        json.encode(coords)
+    })
+    if not id then return end
+    Stacks[id] = {id = id, enter_coords = coords}
+    TriggerClientEvent('Housing:c:AddStack', -1, Stacks[id])
+end)
+
+RegisterNetEvent('Housing:s:DeleteStack', function (stackId)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer?.job.name == Config.Job.name then return end
+    for k, v in pairs(Properties) do
+        if v.stack == stackId then
+            return
+        end
+    end
+    MySQL.rawExecute('DELETE FROM `properties_stacks` WHERE id = ?', {
+        stackId
+    })
+    Stacks[stackId] = nil
+    TriggerClientEvent('Housing:c:RemoveStack', -1, stackId)
+end)

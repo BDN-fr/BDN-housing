@@ -1,5 +1,6 @@
 Config = Config or {}
 
+Config.showMarker = false
 Config.marker = { -- https://docs.fivem.net/natives/?_0x28477EC23D892089
     type = 23, -- https://docs.fivem.net/docs/game-references/markers/
     zOffset = -0.95,

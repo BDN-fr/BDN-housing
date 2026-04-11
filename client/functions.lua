@@ -13,6 +13,7 @@ function WaitInput(message, keys, cb)
 end
 
 function DrawConfigMarker(coords)
+    if not Config.showMarker then return end
     local m = Config.marker
     DrawMarker(
         m.type,
@@ -51,6 +52,7 @@ function CreateProperty()
         isCreatingProperty = false
         return
     end
+    PreviewOutCoords = enterCoords
     EnterProperty('preview', shell)
     WaitInput(L('PreviewValidationText'), {51, 73}, function (key)
         ExitProperty()
@@ -141,21 +143,36 @@ function RemoveFurnitures(furnitures)
 end
 
 RegisterNetEvent('Housing:c:AddProperty', function (data)
-    Properties[data[1]] = data[2]
-    if ESX.PlayerData.job.name == Config.Job.name then
-        Properties[data[1]].jobBlip = CreateBlip(data[2].enter_coords, Config.Job.blip)
+    Properties[data.id] = data
+    if ESX.PlayerData.job.name == Config.Job.name and data.enter_coords then
+        Properties[data.id].jobBlip = CreateBlip(data.enter_coords, Config.Job.blip)
     end
 end)
 
 RegisterNetEvent('Housing:c:RemoveProperty', function (id)
     if Properties[id].blip then RemoveBlip(Properties[id].blip) end
-    if ESX.PlayerData.job.name == Config.Job.name then
+    if ESX.PlayerData.job.name == Config.Job.name and Properties[id].jobBlip then
         RemoveBlip(Properties[id].jobBlip)
     end
     Properties[id] = nil
 end)
 
+RegisterNetEvent('Housing:c:AddStack', function (data)
+    Stacks[data.id] = data
+    if ESX.PlayerData.job.name == Config.Job.name then
+        Stacks[data.id].jobBlip = CreateBlip(data.enter_coords, Config.Job.blip)
+    end
+end)
 
+RegisterNetEvent('Housing:c:RemoveStack', function (id)
+    if ESX.PlayerData.job.name == Config.Job.name then
+        RemoveBlip(Stacks[id].jobBlip)
+    end
+    Stacks[id] = nil
+end)
+
+
+-- -- Uncomment to have a good cam in the sky
 -- local cam
 local prop
 -- local propCoords

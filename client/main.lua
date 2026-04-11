@@ -19,6 +19,8 @@ CurrentPropertyObj = nil
 CurrentPropertyCoords = nil
 CurrentPropertyFurnitures = {}
 
+PreviewOutCoords = nil
+
 local exiting
 
 RegisterNetEvent('esx:setJob', function(job, lastJob)
@@ -50,8 +52,9 @@ RegisterNetEvent('esx:onPlayerLogout', function ()
     end
 end)
 
-RegisterNetEvent('Housing:c:RegisterProperties', function (properties)
+RegisterNetEvent('Housing:c:RegisterProperties', function (properties, stacks)
     Properties = properties
+    Stacks = stacks
 end)
 TriggerServerEvent('Housing:s:HeySendMePropertiesPlease')
 
@@ -60,7 +63,7 @@ RegisterNetEvent('Housing:c:SubToProperty', function (propertyId, state)
     if not p then return end
     if state then
         if not p.blip then
-            p.blip = CreateBlip(p.enter_coords, Config.blip)
+            p.blip = CreateBlip(p.enter_coords or Stacks[p.stack].enter_coords, Config.blip)
         end
     else
         RemoveBlip(p.blip)
@@ -87,7 +90,7 @@ CreateThread(function (threadId)
     local uiText
     local state
     local stateText = ''
-    local nearestCoords, nearestId
+    local nearestCoords, nearestId, nearestType
     RegisterNetEvent('Housing:c:UpdateState', function (propertyId, newState)
         if nearestId == propertyId then
             state = newState
@@ -99,17 +102,28 @@ CreateThread(function (threadId)
     end
     while true do
         local nearestDist = math.maxinteger
+        local pos = GetEntityCoords(PlayerPedId())
         for k,v in pairs(Properties) do
-            if v then
-                local pos = GetEntityCoords(PlayerPedId())
+            if v.enter_coords then
                 local dist = #(v.enter_coords - pos)
                 if dist < nearestDist then
+                    nearestType = 'property'
                     nearestDist = dist
                     nearestCoords = v.enter_coords
                     nearestId = k
                 end
             end
         end
+        for k, v in pairs(Stacks) do
+            local dist = #(v.enter_coords - pos)
+            if dist < nearestDist then
+                nearestType = 'stack'
+                nearestDist = dist
+                nearestCoords = v.enter_coords
+                nearestId = k
+            end
+        end
+        local preview = nearestId == 'preview'
         local waitTime = nearestDist/3
         if nearestDist < 30 then
             waitTime = 1
@@ -117,27 +131,32 @@ CreateThread(function (threadId)
 
             if nearestDist < 2 then
                 if not lib.isTextUIOpen() then
-                    if nearestId == 'preview' then
+                    if preview then
                         state = true
                         uiText = L('PropertyVisit')
                     else
-                        lib.callback('Housing:s:IsPropertyLocked', 1000, function (res)
-                            state = res
-                        end, nearestId)
-                        if ESX?.PlayerData?.job?.name == Config.Job.name then
-                            uiText = L('PropertyEnterText')..L('PropertyEnterTextJob')
-                        else
+                        if nearestType == 'property' then
+                            lib.callback('Housing:s:IsPropertyLocked', 1000, function (res)
+                                state = res
+                            end, nearestId)
                             uiText = L('PropertyEnterText')
+                            if ESX?.PlayerData?.job?.name == Config.Job.name then
+                                uiText = uiText..L('PropertyEnterTextJob')
+                            end
+                        else
+                            uiText = L('StackEnterText')
                         end
                     end
                     lib.showTextUI(uiText)
                 end
 
-                stateText = nearestId == 'preview' and L('Visit') or (state and '🔓' or '🔒')
-                ESX.Game.Utils.DrawText3D(vec3(nearestCoords.xy, nearestCoords.z+Config.stateOffset), stateText, 1.0, 2)
+                if nearestType == 'property' then
+                    stateText = preview and L('Visit') or (state and '🔓' or '🔒')
+                    ESX.Game.Utils.DrawText3D(vec3(nearestCoords.xy, nearestCoords.z+Config.stateOffset), stateText, 1.0, 2)
+                end
 
                 if IsControlJustReleased(0, 51) then
-                    if nearestId == 'preview' then
+                    if preview then
                         local shell = ChooseShell()
                         if shell then
                             EnterProperty('preview', shell)
@@ -148,31 +167,31 @@ CreateThread(function (threadId)
                             end)
                         end
                     else
-                        if state then
-                            EnterProperty(nearestId)
-                        elseif lib.callback.await('Housing:s:DoesIHavePropertyKey', 1000, nearestId) then
-                            EnterProperty(nearestId)
+                        if nearestType == 'property' then
+                            if state then
+                                EnterProperty(nearestId)
+                            elseif lib.callback.await('Housing:s:DoesIHavePropertyKey', 1000, nearestId) then
+                                EnterProperty(nearestId)
+                            else
+                                Config.Notify(L('LockedProperty'), 'error')
+                            end
                         else
-                            Config.Notify(L('LockedProperty'), 'error')
+                            OpenStackMenu(nearestId)
                         end
                     end
                 end
 
-                if IsControlJustReleased(0, 47) then
-                    if not nearestId == 'preview' then
+                if nearestType == 'property' and not preview then
+                    if IsControlJustReleased(0, 47) then
                         RingProperty(nearestId)
                     end
-                end
 
-                if IsControlJustReleased(0, 74) then
-                    if not nearestId == 'preview' then
+                    if IsControlJustReleased(0, 74) then
                         TogglePropertyLock(nearestId)
                     end
-                end
 
-                if ESX.PlayerData.job.name == Config.Job.name then
-                    if IsControlJustReleased(0, 303) then
-                        if not nearestId == 'preview' then
+                    if ESX.PlayerData.job.name == Config.Job.name then
+                        if IsControlJustReleased(0, 303) then
                             OpenPropertyJobMenu(nearestId)
                         end
                     end
@@ -201,7 +220,9 @@ function EnterProperty(propertyId, shellType)
         DoScreenFadeOut(500)
         FreezeEntityPosition(PlayerPedId(), true)
 
-        local coords = vec3(p.enter_coords.x, p.enter_coords.y, p.enter_coords.z+300)
+        local enter_coords = p.enter_coords or Stacks[p.stack].enter_coords or vec3(0,0,0)
+
+        local coords = vec3(enter_coords.x, enter_coords.y, enter_coords.z+300)
         CurrentPropertyCoords = coords
         local doorCoords = coords + Config.Shells[p.shell].door
 
@@ -229,11 +250,13 @@ function EnterProperty(propertyId, shellType)
         FreezeEntityPosition(PlayerPedId(), false)
 
         CreateThread(function (threadId)
-            local maxDims = GetModelDimensions(p.shell)*2
+            local _, maxDims = GetModelDimensions(p.shell)
+            maxDims = maxDims*2
             while CurrentPropertyId == propertyId and not exiting do
                 Wait(500)
                 local distVec = coords - GetEntityCoords(PlayerPedId())
-                local maxDist = math.abs(maxDims.x) + math.abs(maxDims.y) + math.abs(maxDims.z)
+                -- local maxDist = math.abs(maxDims.x) + math.abs(maxDims.y) + math.abs(maxDims.z)
+                local maxDist = math.max(math.abs(maxDims.x), math.abs(maxDims.y), math.abs(maxDims.z))
                 if
                     -- math.abs(distVec.x) > math.abs(maxDims.x) or
                     -- math.abs(distVec.y) > math.abs(maxDims.y) or
@@ -324,8 +347,13 @@ function ExitProperty()
         -- This is a callback because we need to wait to be in the right bucket
         lib.callback.await('Housing:s:ExitProperty', 1000, true)
     end
+    local coords = Properties[CurrentPropertyId].enter_coords or Stacks[Properties[CurrentPropertyId].stack].enter_coords or GetEntityCoords(PlayerPedId()) - vec3(0,0,300)
+    if preview and PreviewOutCoords then
+        coords = PreviewOutCoords
+        PreviewOutCoords = nil
+    end
     ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
-    SetEntityCoords(PlayerPedId(), Properties[CurrentPropertyId].enter_coords, false, false, false, false)
+    SetEntityCoords(PlayerPedId(), coords, false, false, false, false)
     if Config.onPropertyExit then
         Config.onPropertyExit(CurrentPropertyId)
     end
@@ -342,7 +370,7 @@ end
 
 function RingProperty(propertyId)
     TriggerServerEvent('Housing:s:RingProperty', propertyId)
-    Config.Notify(L('YouRinged'), 'success')
+    Config.Notify(L('YouRang'), 'success')
 end
 
 function TogglePropertyLock(propertyId)

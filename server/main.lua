@@ -30,8 +30,10 @@ Properties = {}
 MySQL.query('SELECT * FROM `properties`', {}, function (res)
     if not res then return end
     for i, v in ipairs(res) do
-        v.enter_coords = json.decode(v.enter_coords)
-        v.enter_coords = vec3(v.enter_coords.x, v.enter_coords.y, v.enter_coords.z)
+        if v.enter_coords then
+            v.enter_coords = json.decode(v.enter_coords)
+            v.enter_coords = vec3(v.enter_coords.x, v.enter_coords.y, v.enter_coords.z)
+        end
         if v.storage_coords then
             v.storage_coords = json.decode(v.storage_coords)
             v.storage_coords = vec3(v.storage_coords.x, v.storage_coords.y, v.storage_coords.z)
@@ -40,6 +42,15 @@ MySQL.query('SELECT * FROM `properties`', {}, function (res)
         exports[Config.ox_inventory]:RegisterStash('property'..v.id, L('Storage'), Config.Storage.slots, Config.Storage.weight)
     end
     Properties['preview'] = {enter_coords = Config.visit}
+end)
+Stacks = {}
+MySQL.query('SELECT * FROM `properties_stacks`', {}, function (res)
+    if not res then return end
+    for i, v in ipairs(res) do
+        v.enter_coords = json.decode(v.enter_coords)
+        v.enter_coords = vec3(v.enter_coords.x, v.enter_coords.y, v.enter_coords.z)
+        Stacks[v.id] = v
+    end
 end)
 PropertiesState = {}
 PlayersInsideProperties = {}
@@ -103,7 +114,7 @@ exports[Config.ox_inventory]:registerHook('swapItems', function(payload)
 end)
 
 RegisterNetEvent('Housing:s:HeySendMePropertiesPlease', function ()
-    TriggerClientEvent('Housing:c:RegisterProperties', source, Properties)
+    TriggerClientEvent('Housing:c:RegisterProperties', source, Properties, Stacks)
 end)
 
 RegisterNetEvent('esx:playerLoaded', function(playerId, xPlayer, isNew)
@@ -120,6 +131,7 @@ end, true)
 
 RegisterNetEvent('Housing:s:CreateProperty', function (data)
     local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return end
     if xPlayer.job.name ~= Config.Job.name then return end
     if not exports[Config.ox_inventory]:RemoveItem(xPlayer.source, Config.Items[Config.Shells[data.shell].itemType], 1) then
         Config.Notify(xPlayer.source, L('LackItem'), 'error')

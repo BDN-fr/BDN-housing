@@ -12,6 +12,9 @@ Locales = {
         PropertyVisit = '[E] - Visiter',
         PropertyEnterText = '[E] - Entrer  \n[G] - Sonner  \n[H] - Vérouiller / Dévérouiller',
         PropertyEnterTextJob = '  \n[U] - Gérer la propriété (métier)',
+        Enter = 'Enter',
+        Ring = 'Sonner',
+        ManageProperty = 'Gérer la propriété (métier)',
         OpenMenu = 'Ouvrir le menu',
         PropertyMenuTitle = 'Menu de la propriété',
         Visit = 'Visite',
@@ -40,7 +43,7 @@ Locales = {
         CantGetKey = 'Vous devez avoir une clé de la propriété pour récupérer une autre clé',
         NoFurnitures = 'Il n\'y a aucun meuble',
         Ringed = 'Quelqu\'un sonne à la porte',
-        YouRinged = 'Vous avez sonné',
+        YouRang = 'Vous avez sonné',
         Separator = '----------------------------------------------------------------------------',
         Layouts = 'Décorations',
         LayoutSaved = 'La décoration actuelle a été sauvegardée',
@@ -58,6 +61,10 @@ Locales = {
         PreviewShells = 'Prévisualiser les intérieurs',
         QuitShellPreviewMessage = '[E] - Quitter la prévisualisation',
         LackItem = 'Vous n\'avez pas l\'objet necessaire pour créer la propriété',
+        Apartment = 'Appartement',
+        Apartments = 'Appartements',
+        StackEnterText = '[E] - Voir les appartements',
+        CreateStack = 'Créer un immeuble'
     }
 }
 

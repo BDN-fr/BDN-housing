@@ -4,6 +4,12 @@ local options = {
         onSelect = function ()
             CreateProperty()
         end
+    },
+    {
+        title = L('CreateStack'),
+        onSelect = function ()
+            TriggerServerEvent('Housing:s:CreateStack')
+        end
     }
 }
 if Config.Garage.Activated then
@@ -99,7 +105,7 @@ lib.registerMenu({
             local input = lib.inputDialog(L('PlaceCustomModel'), {
                 {type = 'input', label = L('Model'), required = true}
             })
-            if input and IsModelValid(input[1]) then
+            if input?[1] and IsModelValid(input[1]) then
                 if isPreviewActive then
                     PreviewProp(input[1])
                     WaitInput(L('PreviewValidationText'), {51, 73}, function (key)
@@ -382,6 +388,90 @@ lib.registerContext({
 function OpenPropertyJobMenu(propertyId)
     menuPropertyId = propertyId
     lib.showContext('propertyJobMenu')
+end
+
+local currentStackId
+lib.registerMenu({
+    id = 'stackMenu',
+    title = L('Apartments'),
+    options = {},
+    canClose = true
+}, function (selected, scrollIndex, args)
+    if args.id then
+        local actions = {
+            EnterProperty,
+            TogglePropertyLock,
+            RingProperty,
+            OpenPropertyJobMenu
+        }
+        if actions[scrollIndex] then
+            actions[scrollIndex](args.id)
+        end
+    elseif args.add then
+        local shell = ChooseShell()
+        if not shell then return end
+        PreviewOutCoords = Stacks[currentStackId].enter_coords
+        EnterProperty('preview', shell)
+        WaitInput(L('PreviewValidationText'), {51, 73}, function (key)
+            ExitProperty()
+            if key == 51 then
+                local data = {}
+                data.shell = shell
+                data.stack = currentStackId
+                TriggerServerEvent('Housing:s:CreateProperty', data)
+            end
+        end)
+    elseif args.delete then
+        TriggerServerEvent('Housing:s:DeleteStack', currentStackId)
+    end
+end)
+
+function OpenStackMenu(stackId)
+    local options = {}
+    local count = 0
+    local values = {
+        L('Enter'),
+        L('ToggleLock'),
+        L('Ring')
+    }
+    for k, v in pairs(Properties) do
+        if v.stack == stackId then
+            count += 1
+            table.insert(options, 1, {
+                label = L('Apartment')..' '..tostring(k),
+                args = {
+                    id = k
+                },
+                -- values = {
+                --     L('Enter'),
+                --     L('ToggleLock'),
+                --     L('Ring'),
+                --     L('ManageProperty')
+                -- }
+                values = values
+            })
+        end
+    end
+    if ESX.PlayerData.job.name == Config.Job.name then
+        table.insert(values, L('ManageProperty'))
+        table.insert(options, {
+            label = L('CreateProperty'),
+            args = {
+                add = true
+            }
+        })
+        if count == 0 then
+            table.insert(options, {
+                label = L('Delete'),
+                args = {
+                    delete = true
+                }
+            })
+        end
+    end
+    currentStackId = stackId
+    lib.setMenuOptions('stackMenu', options)
+    lib.showMenu('stackMenu')
 end
 
 function ChooseShell()
