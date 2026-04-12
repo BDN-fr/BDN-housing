@@ -7,6 +7,7 @@ function CreateProperty(data)
     UpdatePropertyCode(id, code)
     exports[Config.ox_inventory]:RegisterStash('property'..id, L('Storage'), Config.Storage.slots, Config.Storage.weight)
     TriggerClientEvent('Housing:c:AddProperty', -1, Properties[id])
+    TriggerEvent('Housing:s:OnPropertyCreation', id)
     return id
 end
 
@@ -267,6 +268,7 @@ RegisterNetEvent('Housing:s:DeleteProperty', function (propertyId)
     })
     Properties[propertyId] = nil
     TriggerClientEvent('Housing:c:RemoveProperty', -1, propertyId)
+    TriggerEvent('Housing:s:OnPropertyDeletion', propertyId)
 end)
 
 function GenerateCode(propertyId)
@@ -352,4 +354,12 @@ RegisterNetEvent('Housing:s:DeleteStack', function (stackId)
     })
     Stacks[stackId] = nil
     TriggerClientEvent('Housing:c:RemoveStack', -1, stackId)
+end)
+
+exports('getProperty', function (propertyId)
+    return Properties[propertyId]
+end)
+
+exports('getStack', function (stackId)
+    return Stacks[stackId]
 end)
